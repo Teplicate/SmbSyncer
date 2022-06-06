@@ -1,4 +1,4 @@
-package ru.teplicate.datasyncersmb.fragment.scan_screen
+package ru.teplicate.datasyncersmb.fragment.scan_fragment
 
 import android.Manifest
 import android.annotation.TargetApi
@@ -25,7 +25,7 @@ import ru.teplicate.datasyncersmb.data.SmbInfo
 import ru.teplicate.datasyncersmb.databinding.FragmentScanNetworkBinding
 import ru.teplicate.datasyncersmb.enums.ConnectionState
 import ru.teplicate.datasyncersmb.fragment.core.AbstractMasterDetailFragment
-import ru.teplicate.datasyncersmb.fragment.scan_screen.view_model.ScanNetworkViewModel
+import ru.teplicate.datasyncersmb.fragment.scan_fragment.view_model.ScanNetworkViewModel
 import ru.teplicate.datasyncersmb.util.PermissionChecker
 
 class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener {

@@ -1,4 +1,4 @@
-package ru.teplicate.datasyncersmb.fragment.setup_sync_screen
+package ru.teplicate.datasyncersmb.fragment.setup_sync_fragment
 
 import android.content.Context
 import android.content.Intent
@@ -19,9 +19,7 @@ import ru.teplicate.datasyncersmb.databinding.FragmentSetupSyncBinding
 import ru.teplicate.datasyncersmb.enums.SetupSyncEvent
 import ru.teplicate.datasyncersmb.enums.SyncOption
 import ru.teplicate.datasyncersmb.fragment.core.AbstractMasterDetailFragment
-import ru.teplicate.datasyncersmb.fragment.dialog.SyncDialog
-import ru.teplicate.datasyncersmb.fragment.dialog.SyncDialogListener
-import ru.teplicate.datasyncersmb.fragment.setup_sync_screen.view_model.SetupSyncViewModel
+import ru.teplicate.datasyncersmb.fragment.setup_sync_fragment.view_model.SetupSyncViewModel
 
 class SetupSyncFragment : AbstractMasterDetailFragment() {
 

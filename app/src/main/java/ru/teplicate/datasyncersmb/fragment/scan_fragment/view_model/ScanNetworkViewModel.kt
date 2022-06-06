@@ -1,4 +1,4 @@
-package ru.teplicate.datasyncersmb.fragment.scan_screen.view_model
+package ru.teplicate.datasyncersmb.fragment.scan_fragment.view_model
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.teplicate.datasyncersmb.data.SmbInfo
 import ru.teplicate.datasyncersmb.enums.ConnectionState
-import ru.teplicate.datasyncersmb.fragment.scan_screen.AddressData
+import ru.teplicate.datasyncersmb.fragment.scan_fragment.AddressData
 import ru.teplicate.datasyncersmb.network_scanner.NetworkScanner
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
 

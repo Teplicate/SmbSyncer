@@ -1,4 +1,4 @@
-package ru.teplicate.datasyncersmb.fragment.scan_screen
+package ru.teplicate.datasyncersmb.fragment.scan_fragment
 
 import android.view.LayoutInflater
 import android.view.View

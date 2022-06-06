@@ -1,4 +1,4 @@
-package ru.teplicate.datasyncersmb.fragment.home_screen
+package ru.teplicate.datasyncersmb.fragment.home_fragment
 
 import android.view.LayoutInflater
 import android.view.View
@@ -13,7 +13,7 @@ import ru.teplicate.datasyncersmb.enums.SyncState
 import ru.teplicate.datasyncersmb.fragment.core.AbstractMasterDetailFragment
 import ru.teplicate.datasyncersmb.fragment.dialog.SyncDialog
 import ru.teplicate.datasyncersmb.fragment.dialog.SyncDialogListener
-import ru.teplicate.datasyncersmb.fragment.home_screen.view_model.HomeViewModel
+import ru.teplicate.datasyncersmb.fragment.home_fragment.view_model.HomeViewModel
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
 
 class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemClickListener,

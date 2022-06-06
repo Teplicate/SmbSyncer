@@ -1,25 +1,17 @@
-package ru.teplicate.datasyncersmb.fragment.setup_sync_screen.view_model
+package ru.teplicate.datasyncersmb.fragment.setup_sync_fragment.view_model
 
-import android.app.Application
 import android.net.Uri
-import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import ru.teplicate.datasyncersmb.content_processor.ContentProcessor
 import ru.teplicate.datasyncersmb.data.SmbInfo
-import ru.teplicate.datasyncersmb.database.entity.FileInfo
 import ru.teplicate.datasyncersmb.database.entity.SmbConnection
 import ru.teplicate.datasyncersmb.database.entity.SynchronizationInfo
 import ru.teplicate.datasyncersmb.database.entity.SynchronizationUnit
 import ru.teplicate.datasyncersmb.database.repository.SyncUnitRepository
 import ru.teplicate.datasyncersmb.enums.SetupSyncEvent
 import ru.teplicate.datasyncersmb.enums.SyncOption
-import ru.teplicate.datasyncersmb.manager.SyncManager
-import ru.teplicate.datasyncersmb.smb.SmbProcessor
-import java.sql.Date
-import java.util.*
 import kotlin.collections.HashSet
 
 class SetupSyncViewModel(

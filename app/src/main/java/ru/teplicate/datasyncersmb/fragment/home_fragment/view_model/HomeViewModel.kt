@@ -1,9 +1,8 @@
-package ru.teplicate.datasyncersmb.fragment.home_screen.view_model
+package ru.teplicate.datasyncersmb.fragment.home_fragment.view_model
 
 import android.app.Application
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.*
-import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -11,7 +10,6 @@ import ru.teplicate.datasyncersmb.database.entity.FileInfo
 import ru.teplicate.datasyncersmb.database.entity.SynchronizationUnit
 import ru.teplicate.datasyncersmb.database.repository.SyncUnitRepository
 import ru.teplicate.datasyncersmb.enums.SyncState
-import ru.teplicate.datasyncersmb.fragment.dialog.SyncDialogListener
 import ru.teplicate.datasyncersmb.manager.SyncManager
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
 import java.sql.Date

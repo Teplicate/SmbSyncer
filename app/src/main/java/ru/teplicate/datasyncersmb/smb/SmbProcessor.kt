@@ -15,6 +15,7 @@ import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
 import kotlinx.coroutines.coroutineScope
+import ru.teplicate.datasyncersmb.data.RemoteFileView
 import ru.teplicate.datasyncersmb.data.SmbInfo
 import ru.teplicate.datasyncersmb.database.entity.SynchronizationUnit
 import ru.teplicate.datasyncersmb.enums.ConnectionState
@@ -216,6 +217,19 @@ class SmbProcessor {
                 outStream.flush()
             }
         }
+    }
+
+    fun listFiles(smbInfo: SmbInfo, path: String): List<RemoteFileView> {
+        val files = executeAuthenticatedAction(smbInfo) { session, smbInfo ->
+            val share = session.connectShare(smbInfo.directory) as DiskShare
+
+            share.list(path)
+                .map { e ->
+                    RemoteFileView(name = e.fileName, size = e.allocationSize, path = path, fileId = e.fileId)
+                }
+        }
+
+        return files
     }
 
     abstract class SyncEventHandler {

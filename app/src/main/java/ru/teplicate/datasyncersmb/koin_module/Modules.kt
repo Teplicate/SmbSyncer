@@ -7,9 +7,11 @@ import org.koin.dsl.module
 import ru.teplicate.datasyncersmb.content_processor.ContentProcessor
 import ru.teplicate.datasyncersmb.database.AppDatabase
 import ru.teplicate.datasyncersmb.database.repository.SyncUnitRepository
-import ru.teplicate.datasyncersmb.fragment.home_screen.view_model.HomeViewModel
-import ru.teplicate.datasyncersmb.fragment.scan_screen.view_model.ScanNetworkViewModel
-import ru.teplicate.datasyncersmb.fragment.setup_sync_screen.view_model.SetupSyncViewModel
+import ru.teplicate.datasyncersmb.fragment.home_fragment.view_model.HomeViewModel
+import ru.teplicate.datasyncersmb.fragment.scan_fragment.view_model.ScanNetworkViewModel
+import ru.teplicate.datasyncersmb.fragment.setup_sync_fragment.view_model.SetupSyncViewModel
+import ru.teplicate.datasyncersmb.fragment.shared_files_fragment.view_model.SharedFilesViewModel
+import ru.teplicate.datasyncersmb.manager.DownloadManager
 import ru.teplicate.datasyncersmb.manager.SyncManager
 import ru.teplicate.datasyncersmb.network_scanner.NetworkScanner
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
@@ -24,10 +26,12 @@ val vmModule = module {
     single { ContentProcessor() }
     single { SyncUnitRepository(get()) }
     single { SyncManager(get(), get()) }
+    single { DownloadManager(get()) }
 
     viewModel { ScanNetworkViewModel(get(), get()) }
     viewModel { SetupSyncViewModel(get()) }
     viewModel { HomeViewModel(androidApplication(), get(), get()) }
+    viewModel { SharedFilesViewModel(get()) }
 }
 
 

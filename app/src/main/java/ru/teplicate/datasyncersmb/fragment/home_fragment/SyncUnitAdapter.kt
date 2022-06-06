@@ -1,4 +1,4 @@
-package ru.teplicate.datasyncersmb.fragment.home_screen
+package ru.teplicate.datasyncersmb.fragment.home_fragment
 
 import android.view.LayoutInflater
 import android.view.View
