@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/addressFragment"
+        android:name="ru.teplicate.datasyncersmb.fragment.scan_screen.ScanNetworkFragment"
+        android:label="Network scanner"
+        tools:layout="@layout/fragment_scan_network"
+        >
+        <action
+            android:id="@+id/action_addressFragment_to_setupSyncFragment"
+            app:destination="@id/setupSyncFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/setupSyncFragment"
+        android:name="ru.teplicate.datasyncersmb.fragment.setup_sync_screen.SetupSyncFragment"
+        android:label="Setup sync unit">
+        <argument
+            android:name="smbInfo"
+            app:argType="ru.teplicate.datasyncersmb.data.SmbInfo" />
+        <action
+            android:id="@+id/action_setupSyncFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="ru.teplicate.datasyncersmb.fragment.home_screen.HomeFragment"
+        android:label="Synchronization list">
+        <action
+            android:id="@+id/action_homeFragment_to_addressFragment"
+            app:destination="@id/addressFragment" />
+    </fragment>
+</navigation>

@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">DataSyncerSMB</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="address_scan_btn">Scan local network</string>
+    <string name="addresses_devices_in_network">Devices in Network:</string>
+    <string name="address_wifi_on">Turn on Wi-Fi</string>
+    <string name="local_ip">Local IP:</string>
+    <string name="address_mac">Mac:</string>
+    <string name="device_ip">IP: %1$s</string>
+    <string name="mac_addr">Mac: %1$s</string>
+    <string name="position">%1$d.</string>
+    <string name="address_shared_directory">Shared Directory:</string>
+    <string name="txt_connect_info">Connect info</string>
+    <string name="dialog_progress_current_txt">%1$d</string>
+    <string name="dialog_progress_total_txt">$1%d</string>
+    <string name="error_set_directory_name">Provide directory name</string>
+    <string name="state_copying">Copying</string>
+    <string name="state_reading_files">Reading files</string>
+    <string name="state_removing">Removing</string>
+</resources>
