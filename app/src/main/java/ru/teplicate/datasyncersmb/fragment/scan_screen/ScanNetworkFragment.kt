@@ -5,11 +5,12 @@ import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.net.*
-import android.net.wifi.WifiInfo
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.os.Build
-import android.provider.DocumentsContract
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
@@ -138,11 +139,11 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
             !permissionChecker.checkIfPermissionGranted(
                 requireContext(),
                 Manifest.permission.ACCESS_WIFI_STATE
-            ) -> locationAccessLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+            ) -> wifiPermissionLauncher.launch(Manifest.permission.ACCESS_WIFI_STATE)
             !permissionChecker.checkIfPermissionGranted(
                 requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) -> locationAccessLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) -> locationAccessLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             else -> {
                 checkWifiState()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -166,24 +167,19 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
                 network: Network,
                 networkCapabilities: NetworkCapabilities
             ) {
-                val isWifi = networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                val wifiInfo = networkCapabilities.transportInfo as WifiInfo?
                 val props = connectivityManager.getLinkProperties(network)
                 val serverAddr = props?.dhcpServerAddress
                 viewModel.setupSubnetAddress(requireNotNull(serverAddr).hostAddress!!)
-//                viewModel.setupBssid(wifiInfo?.ssid)
             }
         }
 
         connectivityManager.requestNetwork(request, networkCallback)
     }
 
-
+    
     private fun setupSubnetOld() {
         //use ssid as prim key
-        val info = wifiManager.connectionInfo
         viewModel.setupSubnetAddress(wifiManager.dhcpInfo.gateway)
-//        binding.mac.text = info.ssid
     }
 
 
@@ -206,8 +202,8 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
     }
 
     private fun requestLocation(): ActivityResultLauncher<String> {
-        return registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            lockUi(it)
+        return registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            lockUi(!granted)
         }
     }
 
@@ -274,16 +270,6 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
                 args
             )
         )
-    }
-
-    private fun openDirPicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-            // Optionally, specify a URI for the directory that should be opened in
-            // the system file picker when it loads.
-            putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.parse(requireContext().filesDir.path))
-        }
-
-        startActivity(intent)
     }
 }
 
