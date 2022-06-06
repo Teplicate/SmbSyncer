@@ -3,6 +3,7 @@ package ru.teplicate.datasyncersmb.fragment.home_screen.view_model
 import android.app.Application
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.*
+import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -52,13 +53,11 @@ class HomeViewModel(
     fun deleteUnit(unit: SynchronizationUnit) {
         viewModelScope.launch(Dispatchers.IO) {
             syncUnitRepository.deleteSyncUnit(unit)
-        }.invokeOnCompletion {
-            TODO("remove from rv")
         }
     }
 
     fun syncData(syncEventHandler: SmbProcessor.SyncEventHandler) {
-        viewModelScope.launch(Dispatchers.IO) {
+        syncJob = viewModelScope.launch(Dispatchers.IO) {
             syncManager.syncContentFromDirectory(
                 requireNotNull(_selectedUnit.value),
                 getApplication<Application>(),
@@ -83,6 +82,7 @@ class HomeViewModel(
 
     fun cancelSyncJob() {
         syncJob?.cancel()
+        _uploadedFile.postValue(null)
     }
 
     fun fileUploaded(docFile: DocumentFile) {
@@ -92,5 +92,4 @@ class HomeViewModel(
     fun changeSyncState(state: SyncState) {
         _syncState.postValue(state)
     }
-
 }

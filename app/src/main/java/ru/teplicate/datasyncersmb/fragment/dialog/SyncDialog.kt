@@ -10,8 +10,7 @@ import ru.teplicate.datasyncersmb.databinding.DialogSyncProgressBinding
 import ru.teplicate.datasyncersmb.enums.SyncState
 
 class SyncDialog(
-    private val syncDialogListener: SyncDialogListener,
-    private val totalElements: Int
+    private val syncDialogListener: SyncDialogListener
 ) : DialogFragment() {
 
     companion object {
@@ -30,11 +29,11 @@ class SyncDialog(
                 syncDialogListener.onCancelSync()
             }
             .create()
-        setupViews()
+
         return alertDialog
     }
 
-    private fun setupViews() {
+    fun setupProgBar(totalElements: Int) {
         with(binding.dialogSyncProgressBar) {
             this.progress = 0
             this.max = totalElements

@@ -24,7 +24,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
     private lateinit var binding: FragmentHomeBinding
     private val viewModel: HomeViewModel by viewModel()
-    private lateinit var syncDialog: SyncDialog
+    private var syncDialog: SyncDialog? = null
 
     override fun bindViews(layoutInflater: LayoutInflater): View {
         binding = FragmentHomeBinding.inflate(layoutInflater)
@@ -36,8 +36,6 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         binding.rvSavedConnections.adapter = SyncUnitAdapter(this)
         viewModel.readAllSyncUnits().observe(viewLifecycleOwner, syncUnitsObserver())
         viewModel.selectedUnit.observe(viewLifecycleOwner, selectedUnitObserver())
-        viewModel.uploadedFile.observe(viewLifecycleOwner, uploadedFileObserver())
-        viewModel.syncState.observe(viewLifecycleOwner, syncStateObserver())
 
         binding.btnSetupConnection.setOnClickListener {
             findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToAddressFragment())
@@ -60,7 +58,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
     private fun syncStateObserver(): Observer<in SyncState> {
         return Observer { state ->
             if (state != SyncState.IDLE) {
-                syncDialog.changeState(state)
+                requireNotNull(syncDialog).changeState(state)
             }
         }
     }
@@ -111,53 +109,69 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
     }
 
     private fun syncInPlace() {
-        val syncEventHandler = object : SmbProcessor.SyncEventHandler() {
-            override fun processedWithException(
-                docFile: DocumentFile,
-                syncUnit: SynchronizationUnit
-            ) {
-                viewModel.syncFailedOn(docFile, syncUnit)
-            }
+        registerSyncObservers()
+        val syncEventHandler = syncEventHandler()
 
-            override fun successfulUploadFile(docFile: DocumentFile) {
-                viewModel.fileUploaded(docFile)
-            }
-
-            override fun totalElements(totalElements: Int) {
-                launchProgressDialog(totalElements)
-            }
-
-            override fun onSyncComplete(syncUnit: SynchronizationUnit) {
-                viewModel.onSyncComplete(syncUnit)
-            }
-
-            override fun onReadingFiles() {
-                viewModel.changeSyncState(SyncState.READING_FILES)
-            }
-
-            override fun onCopying() {
-                viewModel.changeSyncState(SyncState.COPYING)
-            }
-        }
-
+        launchProgressDialog()
         viewModel.syncData(syncEventHandler)
     }
 
-    private fun launchProgressDialog(totalElements: Int) {
-        syncDialog = SyncDialog(this, totalElements)
-        syncDialog.show(childFragmentManager, SyncDialog.TAG)
+    private fun removeSyncObservers() {
+        viewModel.syncState.removeObservers(viewLifecycleOwner)
+        viewModel.uploadedFile.removeObservers(viewLifecycleOwner)
+    }
+
+    private fun registerSyncObservers() {
+        viewModel.uploadedFile.observe(viewLifecycleOwner, uploadedFileObserver())
+        viewModel.syncState.observe(viewLifecycleOwner, syncStateObserver())
+    }
+
+    private fun syncEventHandler() = object : SmbProcessor.SyncEventHandler() {
+        override fun processedWithException(
+            docFile: DocumentFile,
+            syncUnit: SynchronizationUnit
+        ) {
+            viewModel.syncFailedOn(docFile, syncUnit)
+        }
+
+        override fun successfulUploadFile(docFile: DocumentFile) {
+            viewModel.fileUploaded(docFile)
+        }
+
+        override fun totalElements(totalElements: Int) {
+            requireNotNull(syncDialog).setupProgBar(totalElements)
+        }
+
+        override fun onSyncComplete(syncUnit: SynchronizationUnit) {
+            viewModel.onSyncComplete(syncUnit)
+        }
+
+        override fun onReadingFiles() {
+            viewModel.changeSyncState(SyncState.READING_FILES)
+        }
+
+        override fun onCopying() {
+            viewModel.changeSyncState(SyncState.COPYING)
+        }
+    }
+
+    private fun launchProgressDialog() {
+        syncDialog = SyncDialog(this)
+        requireNotNull(syncDialog).show(childFragmentManager, SyncDialog.TAG)
     }
 
     private fun uploadedFileObserver(): Observer<in DocumentFile?> {
         return Observer { doc ->
             doc?.let {
-                syncDialog.updateProgress()
+                syncDialog?.updateProgress()
             }
         }
     }
 
     override fun onCancelSync() {
+        removeSyncObservers()
         viewModel.cancelSyncJob()
+        syncDialog = null
     }
 
     override fun onFinish() {
