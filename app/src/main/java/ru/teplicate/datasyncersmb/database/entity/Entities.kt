@@ -16,7 +16,7 @@ data class SynchronizationUnit(
     @Embedded
     val smbConnection: SmbConnection,
     @Embedded
-    val synchronizationInfo: SynchronizationInfo,
+    val synchronizationInfo: SynchronizationInfo?,
     @Embedded
     var failedSyncInfo: FileInfo? = null,
     var synchronizationOptions: List<SyncOption>
@@ -36,7 +36,6 @@ data class SmbConnection(
 data class SynchronizationInfo(
     var lastSyncDate: Date?,
     var targetDirectoryName: String?,
-
 )
 
 data class FileInfo(

@@ -76,7 +76,7 @@ class SyncUnitAdapter(
             binding.txtLocalIp.text = unit.smbConnection.address
             binding.txtContentDirectory.text = unit.smbConnection.sharedDirectory
             binding.txtLastSyncDate.text =
-                unit.synchronizationInfo.lastSyncDate?.toString() ?: ""
+                unit.synchronizationInfo?.lastSyncDate?.toString() ?: ""
 
             binding.btnDeleteUnit.setOnClickListener {
                 listener.onDeleteClickListener(unit, adapterPosition)

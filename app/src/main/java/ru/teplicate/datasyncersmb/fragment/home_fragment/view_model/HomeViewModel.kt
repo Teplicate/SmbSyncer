@@ -74,7 +74,7 @@ class HomeViewModel(
     }
 
     fun onSyncComplete(syncUnit: SynchronizationUnit) {
-        syncUnit.synchronizationInfo.lastSyncDate = Date(Calendar.getInstance().timeInMillis)
+        syncUnit.synchronizationInfo?.lastSyncDate = Date(Calendar.getInstance().timeInMillis)
         syncUnitRepository.updateSyncUnit(syncUnit)
     }
 

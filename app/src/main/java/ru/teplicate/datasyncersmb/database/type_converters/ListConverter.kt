@@ -14,7 +14,11 @@ class ListConverter {
 
     @TypeConverter
     fun stringToList(stringList: String): List<SyncOption> {
+        if (stringList.isEmpty())
+            return emptyList()
+
         return stringList.split(optionSplitter)
+            .filter { it.isNotEmpty() }
             .map { s -> SyncOption.stringToOption(s) }
     }
 }

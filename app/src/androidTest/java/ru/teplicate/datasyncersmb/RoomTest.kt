@@ -45,7 +45,7 @@ class RoomTest : KoinTest {
         val syncUnit = SynchronizationUnit(
             name = "Test Unit",
             synchronizationInfo = SynchronizationInfo(
-                null, "Date"
+                null, null
             ),
             smbConnection = SmbConnection(
                 address = "127.0.0.1",

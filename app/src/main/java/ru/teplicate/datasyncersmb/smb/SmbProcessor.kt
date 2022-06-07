@@ -10,6 +10,7 @@ import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2CreateOptions
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.mssmb2.SMBApiException
+import com.hierynomus.protocol.commons.EnumWithValue
 import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.session.Session
@@ -224,8 +225,23 @@ class SmbProcessor {
             val share = session.connectShare(smbInfo.directory) as DiskShare
 
             share.list(path)
-                .map { e ->
-                    RemoteFileView(name = e.fileName, size = e.allocationSize, path = path, fileId = e.fileId)
+                .mapNotNull { e ->
+                    if (e.fileName.equals(".") || e.fileName.equals(".."))
+                        null
+                    else {
+                        val isDirectory = EnumWithValue.EnumUtils.isSet(
+                            e.fileAttributes,
+                            FileAttributes.FILE_ATTRIBUTE_DIRECTORY
+                        )
+                        RemoteFileView(
+                            name = e.fileName,
+                            size = e.allocationSize,
+                            path = path,
+                            fileId = e.fileId,
+                            isDirectory = isDirectory,
+                            createdAt = e.creationTime.toEpochMillis()
+                        )
+                    }
                 }
         }
 

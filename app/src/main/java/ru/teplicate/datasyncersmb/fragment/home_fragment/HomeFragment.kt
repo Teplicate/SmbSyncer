@@ -47,7 +47,10 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         }
 
         binding.btnDownloadFrom.setOnClickListener {
-
+            val smbInfo = requireNotNull(viewModel.selectedUnit.value).smbConnection.toSmbInfo()
+            findNavController().navigate(
+                HomeFragmentDirections.actionHomeFragmentToSharedFilesFragment(smbInfo)
+            )
         }
 
         binding.btnUploadSelection.setOnClickListener {
@@ -105,6 +108,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
     override fun onDeleteClickListener(unit: SynchronizationUnit, position: Int) {
         viewModel.deleteUnit(unit)
+        viewModel.unitUnselected()
         (binding.rvSavedConnections.adapter as SyncUnitAdapter).removeItem(position)
     }
 

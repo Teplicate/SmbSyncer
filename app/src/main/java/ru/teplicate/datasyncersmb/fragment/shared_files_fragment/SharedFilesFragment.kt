@@ -15,7 +15,8 @@ import ru.teplicate.datasyncersmb.fragment.core.AbstractMasterDetailFragment
 import ru.teplicate.datasyncersmb.fragment.shared_files_fragment.adapter.SharedFilesAdapter
 import ru.teplicate.datasyncersmb.fragment.shared_files_fragment.view_model.SharedFilesViewModel
 
-class SharedFilesFragment : AbstractMasterDetailFragment() {
+class SharedFilesFragment : AbstractMasterDetailFragment(),
+    SharedFilesAdapter.SharedFileClickListener {
 
     override val layoutId: Int
         get() = R.layout.fragment_shared_files
@@ -23,7 +24,6 @@ class SharedFilesFragment : AbstractMasterDetailFragment() {
     private lateinit var binding: FragmentSharedFilesBinding
 
     private val viewModel: SharedFilesViewModel by viewModel()
-    private lateinit var connectionInfo: SmbInfo
 
     override fun bindViews(layoutInflater: LayoutInflater): View {
         binding = FragmentSharedFilesBinding.inflate(layoutInflater)
@@ -32,11 +32,11 @@ class SharedFilesFragment : AbstractMasterDetailFragment() {
     }
 
     override fun setupViews() {
-        connectionInfo = requireNotNull(requireArguments().getParcelable("smbInfo"))
+        binding.rvSharedFiles.adapter = SharedFilesAdapter(this)
 
+        viewModel.setupConnectionInfo(requireNotNull(requireArguments().getParcelable("smbInfo")))
         viewModel.sharedFiles.observe(viewLifecycleOwner, sharedFilesObserver())
-
-        viewModel.listFiles(connectionInfo)
+        viewModel.listFiles()
     }
 
     private fun sharedFilesObserver(): Observer<List<RemoteFileView>> {
@@ -45,5 +45,27 @@ class SharedFilesFragment : AbstractMasterDetailFragment() {
                 (binding.rvSharedFiles.adapter as SharedFilesAdapter)
                     .updateFiles(files)
         }
+    }
+
+    override fun onItemClick(fileView: RemoteFileView) {
+        if (fileView.isDirectory) {
+            viewModel.onDirectorySelected(fileView.name)
+        }
+    }
+
+    override fun onDownloadItemClick(fileView: RemoteFileView) {
+
+    }
+
+    override fun onLongPressFile(fileView: RemoteFileView) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onBackToRootClick() {
+        viewModel.onBackToRoot()
+    }
+
+    override fun onHierarchyUpClick() {
+        viewModel.onHierarchyUp()
     }
 }

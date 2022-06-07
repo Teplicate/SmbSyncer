@@ -11,7 +11,8 @@ import ru.teplicate.datasyncersmb.data.SmbInfo
 import ru.teplicate.datasyncersmb.manager.DownloadManager
 import java.util.*
 
-const val pathSeparator = "/"
+const val PATH_SEPARATOR = "/"
+const val EMPTY_PATH = ""
 
 class SharedFilesViewModel(private val downloadManager: DownloadManager) : ViewModel() {
 
@@ -19,19 +20,23 @@ class SharedFilesViewModel(private val downloadManager: DownloadManager) : ViewM
     val sharedFiles: LiveData<List<RemoteFileView>>
         get() = _sharedFiles
 
-    private var path: MutableList<String> = LinkedList<String>().also { it.add(".") }
+    private var path: MutableList<String> = LinkedList<String>().also { it.add(EMPTY_PATH) }
+    private lateinit var connectionInfo: SmbInfo
 
+    fun setupConnectionInfo(smbInfo: SmbInfo) {
+        this.connectionInfo = smbInfo
+    }
 
-    fun listFiles(smbInfo: SmbInfo) {
+    fun listFiles() {
         viewModelScope.launch(Dispatchers.IO) {
-            val files = downloadManager.listFiles(smbInfo, path.joinToString(pathSeparator))
+            val files = downloadManager.listFiles(connectionInfo, path.joinToString(PATH_SEPARATOR))
             _sharedFiles.postValue(files)
         }
     }
 
-    fun onDirectorySelected(smbInfo: SmbInfo, dirName: String) {
+    fun onDirectorySelected(dirName: String) {
         addChildInPath(child = dirName)
-        listFiles(smbInfo)
+        listFiles()
     }
 
     private fun addChildInPath(child: String) {
@@ -39,11 +44,22 @@ class SharedFilesViewModel(private val downloadManager: DownloadManager) : ViewM
     }
 
     private fun removeChildFromPath() {
-        val found = path.removeLast()
+        if (path.size == 1) {
+            return
+        }
+
+        path.removeLast()
+        listFiles()
     }
 
-    fun onHierarchyUp(smbInfo: SmbInfo) {
+    fun onHierarchyUp() {
         removeChildFromPath()
-        listFiles(smbInfo)
+        listFiles()
+    }
+
+    fun onBackToRoot() {
+        path.clear()
+        path.add(EMPTY_PATH)
+        listFiles()
     }
 }

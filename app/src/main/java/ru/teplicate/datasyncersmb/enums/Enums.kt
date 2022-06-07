@@ -26,9 +26,19 @@ enum class SyncOption {
     }
 }
 
-enum class SyncState{
+enum class SyncState {
     IDLE,
     READING_FILES,
     COPYING,
     REMOVING
+}
+
+enum class FileType(val strVals: List<String>, val viewVal: String) {
+    PDF(listOf("pdf"), "PDF"),
+    IMAGE(listOf("jpg", "jpeg", "png"), "IMG"),
+    TXT(listOf("txt", "text"), "TXT"),
+    VIDEO(listOf("mp4", "mov", "mkv"), "VID"),
+    TABLE(listOf("xlsx", "xls"), "TAB"),
+    OTHER(emptyList(), "FIL"),
+    DIRECTORY(emptyList(), "DIR")
 }
