@@ -42,3 +42,8 @@ enum class FileType(val strVals: List<String>, val viewVal: String) {
     OTHER(emptyList(), "FIL"),
     DIRECTORY(emptyList(), "DIR")
 }
+
+enum class RecyclerViewMode {
+    SELECT,
+    CLICK
+}

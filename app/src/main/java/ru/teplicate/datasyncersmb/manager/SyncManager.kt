@@ -1,5 +1,6 @@
 package ru.teplicate.datasyncersmb.manager
 
+import android.app.Application
 import android.content.Context
 import android.net.Uri
 import ru.teplicate.datasyncersmb.content_processor.ContentProcessor
@@ -9,13 +10,13 @@ import ru.teplicate.datasyncersmb.smb.SmbProcessor
 import java.sql.Date
 
 class SyncManager(
+    private val context: Context,
     private val contentProcessor: ContentProcessor,
     private val smbProcessor: SmbProcessor
 ) {
 
     fun syncContentFromDirectory(
         synchronizationUnit: SynchronizationUnit,
-        context: Context,
         syncEventHandler: SmbProcessor.SyncEventHandler
     ) {
         val uri = Uri.parse(synchronizationUnit.contentUri)
@@ -55,6 +56,5 @@ class SyncManager(
                 context.contentResolver
             )
         }
-
     }
 }

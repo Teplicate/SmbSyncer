@@ -20,6 +20,7 @@ import ru.teplicate.datasyncersmb.data.RemoteFileView
 import ru.teplicate.datasyncersmb.data.SmbInfo
 import ru.teplicate.datasyncersmb.database.entity.SynchronizationUnit
 import ru.teplicate.datasyncersmb.enums.ConnectionState
+import java.io.InputStream
 import java.util.*
 import kotlin.coroutines.coroutineContext
 
@@ -193,7 +194,7 @@ class SmbProcessor {
     ) {
         val accessMask = setOf(AccessMask.GENERIC_ALL)
         val attributes = setOf(FileAttributes.FILE_ATTRIBUTE_NORMAL)
-        val shareAccess = setOf(SMB2ShareAccess.FILE_SHARE_WRITE)
+        val shareAccess = SMB2ShareAccess.ALL
         val createDisp = SMB2CreateDisposition.FILE_OPEN_IF
         val createOptions = setOf(SMB2CreateOptions.FILE_RANDOM_ACCESS)
         val fileName = "${docFile.name ?: UUID.randomUUID()}"
@@ -236,7 +237,7 @@ class SmbProcessor {
                         RemoteFileView(
                             name = e.fileName,
                             size = e.allocationSize,
-                            path = path,
+                            path = path + "/" + e.fileName,
                             fileId = e.fileId,
                             isDirectory = isDirectory,
                             createdAt = e.creationTime.toEpochMillis()
@@ -246,6 +247,38 @@ class SmbProcessor {
         }
 
         return files
+    }
+
+    fun downloadFiles(
+        smbInfo: SmbInfo,
+        filesView: List<RemoteFileView>,
+        streamProcessor: (String, InputStream) -> Unit
+    ) {
+        val accessMask = setOf(AccessMask.GENERIC_READ)
+        val attributes = setOf(FileAttributes.FILE_ATTRIBUTE_NORMAL)
+        val shareAccess = setOf(SMB2ShareAccess.FILE_SHARE_READ)
+        val createDisp = SMB2CreateDisposition.FILE_OPEN
+        val createOptions = setOf(SMB2CreateOptions.FILE_RANDOM_ACCESS)
+
+        executeAuthenticatedAction(smbInfo) { session, _ ->
+            val share = session.connectShare(smbInfo.directory) as DiskShare
+
+            filesView.forEach { fileView ->
+                if (share.fileExists(fileView.path)) {
+                    val file = share.openFile(
+                        fileView.path,
+                        accessMask,
+                        attributes,
+                        shareAccess,
+                        createDisp,
+                        createOptions
+                    )
+                    file.inputStream.use { io ->
+                        streamProcessor(fileView.name, io)
+                    }
+                }
+            }
+        }
     }
 
     abstract class SyncEventHandler {

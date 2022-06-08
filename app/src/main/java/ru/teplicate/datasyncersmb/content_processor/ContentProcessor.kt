@@ -6,19 +6,13 @@ import android.net.Uri
 import android.provider.MediaStore
 import androidx.compose.ui.platform.isDebugInspectorInfoEnabled
 import androidx.documentfile.provider.DocumentFile
+import java.io.File
 import java.sql.Date
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
 
 class ContentProcessor {
-
-    val projection = arrayOf(
-        MediaStore.Files.FileColumns.DISPLAY_NAME,
-        MediaStore.Files.FileColumns.DATE_ADDED,
-        MediaStore.Files.FileColumns.DATA,
-        MediaStore.Files.FileColumns.SIZE
-    )
 
     fun getContent(
         contentDir: Uri,
@@ -53,43 +47,6 @@ class ContentProcessor {
         }
 
         return allFiles
-    }
-
-    fun syncDateContent(
-        dateStr: String,
-        contentDir: Uri,
-        contentResolver: ContentResolver
-    ): List<Data> {
-        val sortOrder = "${MediaStore.Files.FileColumns.DATE_ADDED} ASC"
-        val selection = (MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-                + MediaStore.Files.FileColumns.MEDIA_TYPE_NONE)
-        val dataList = ArrayList<Data>()
-        val selectionArgs = null
-        contentResolver.query(
-            contentDir,
-            projection,
-            selection,
-            selectionArgs,
-            sortOrder
-        )?.use { cursor ->
-            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME)
-            val dateColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_ADDED)
-            val uriColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
-            val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)
-
-
-
-            while (cursor.moveToNext()) {
-                val name = cursor.getString(nameColumn)
-                val date = cursor.getLong(dateColumn)
-                val uri = cursor.getString(uriColumn)
-                val size = cursor.getInt(sizeColumn)
-
-                dataList
-            }
-        }
-
-        return dataList
     }
 }
 

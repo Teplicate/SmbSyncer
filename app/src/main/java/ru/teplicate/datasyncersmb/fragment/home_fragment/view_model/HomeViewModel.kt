@@ -16,10 +16,9 @@ import java.sql.Date
 import java.util.*
 
 class HomeViewModel(
-    application: Application,
     private val syncUnitRepository: SyncUnitRepository,
     private val syncManager: SyncManager
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val _selectedUnit: MutableLiveData<SynchronizationUnit?> = MutableLiveData(null)
     val selectedUnit: LiveData<SynchronizationUnit?>
@@ -58,7 +57,6 @@ class HomeViewModel(
         syncJob = viewModelScope.launch(Dispatchers.IO) {
             syncManager.syncContentFromDirectory(
                 requireNotNull(_selectedUnit.value),
-                getApplication<Application>(),
                 syncEventHandler
             )
         }

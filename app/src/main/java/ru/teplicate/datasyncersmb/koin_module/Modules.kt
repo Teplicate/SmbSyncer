@@ -25,12 +25,12 @@ val vmModule = module {
     single { SmbProcessor() }
     single { ContentProcessor() }
     single { SyncUnitRepository(get()) }
-    single { SyncManager(get(), get()) }
-    single { DownloadManager(get()) }
+    single { SyncManager(androidApplication(), get(), get()) }
+    single { DownloadManager(androidApplication(), get()) }
 
     viewModel { ScanNetworkViewModel(get(), get()) }
     viewModel { SetupSyncViewModel(get()) }
-    viewModel { HomeViewModel(androidApplication(), get(), get()) }
+    viewModel { HomeViewModel(get(), get()) }
     viewModel { SharedFilesViewModel(get()) }
 }
 

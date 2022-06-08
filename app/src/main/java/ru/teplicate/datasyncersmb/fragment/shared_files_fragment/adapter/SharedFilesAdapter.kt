@@ -1,9 +1,11 @@
 package ru.teplicate.datasyncersmb.fragment.shared_files_fragment.adapter
 
 import android.content.res.Resources
+import android.database.Observable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.*
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -12,17 +14,23 @@ import ru.teplicate.datasyncersmb.data.RemoteFileView
 import ru.teplicate.datasyncersmb.databinding.SharedFileItemBinding
 import ru.teplicate.datasyncersmb.enums.FileType
 import ru.teplicate.datasyncersmb.enums.FileType.*
+import ru.teplicate.datasyncersmb.enums.RecyclerViewMode
 import java.util.*
+import kotlin.collections.HashSet
 
 const val UP_DIRECTORY = ".."
 const val ROOT_DIRECTORY = "/"
 
 const val BACK_TO_ROOT_TYPE = 0
 const val UP_DIRECTORY_TYPE = 1
-const val REGULAR_TYPE = 2
+
 
 class SharedFilesAdapter(private val sharedFileClickListener: SharedFileClickListener) :
     ListAdapter<RemoteFileView, SharedFilesAdapter.SharedFileViewHolder>(SharedFileDiffCallback()) {
+
+
+    private var clickMode: RecyclerViewMode = RecyclerViewMode.CLICK
+    private val visibleHolders: MutableSet<SharedFileViewHolder> = HashSet()
 
     private val files: MutableList<RemoteFileView> = LinkedList()
     private val typeToColorMap: Map<FileType, Int> = mapOf(
@@ -80,7 +88,7 @@ class SharedFilesAdapter(private val sharedFileClickListener: SharedFileClickLis
         listOf(
             RemoteFileView(
                 fileId = -1,
-                name = "..",
+                name = UP_DIRECTORY,
                 path = "",
                 size = 0,
                 isDirectory = true,
@@ -88,7 +96,7 @@ class SharedFilesAdapter(private val sharedFileClickListener: SharedFileClickLis
             ),
             RemoteFileView(
                 fileId = -10,
-                name = "/",
+                name = ROOT_DIRECTORY,
                 path = "",
                 size = 0,
                 isDirectory = true,
@@ -101,6 +109,25 @@ class SharedFilesAdapter(private val sharedFileClickListener: SharedFileClickLis
             .also { cachedColors[fileType] = it }
     }
 
+    override fun onViewDetachedFromWindow(holder: SharedFileViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+        visibleHolders.remove(holder)
+    }
+
+    override fun onViewAttachedToWindow(holder: SharedFileViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        visibleHolders.add(holder)
+    }
+
+    fun changeMode(mode: RecyclerViewMode) {
+        clickMode = mode
+
+        if (mode == RecyclerViewMode.CLICK)
+            files.forEach { e -> e.notSelected() }
+
+        visibleHolders.forEach { it.switchMode() }
+    }
+
     inner class SharedFileViewHolder(
         private val binding: SharedFileItemBinding
     ) :
@@ -109,7 +136,6 @@ class SharedFilesAdapter(private val sharedFileClickListener: SharedFileClickLis
         private val resources by lazy { binding.root.resources }
 
         fun bind(remoteFileView: RemoteFileView, position: Int) {
-
             when (position) {
                 BACK_TO_ROOT_TYPE -> {
                     setupControlView(remoteFileView)
@@ -134,10 +160,36 @@ class SharedFilesAdapter(private val sharedFileClickListener: SharedFileClickLis
         private fun setupRegularView(remoteFileView: RemoteFileView) {
             binding.containerOptions.visibility = View.VISIBLE
             binding.txtFilename.text = remoteFileView.name
+            binding.chckSelected.isChecked = remoteFileView.isFileSelected()
+            binding.btnDownloadFile.setOnClickListener {
+                sharedFileClickListener.onDownloadItemClick(remoteFileView)
+            }
+
             setupByType(remoteFileView)
 
             binding.containerClickable.setOnClickListener {
                 sharedFileClickListener.onItemClick(remoteFileView)
+                fileClick(remoteFileView)
+            }
+
+            binding.containerClickable.setOnLongClickListener {
+                if (clickMode == RecyclerViewMode.CLICK) {
+                    sharedFileClickListener.onLongPressFile(remoteFileView)
+                    binding.containerClickable.callOnClick()
+                    true
+                } else false
+            }
+
+            switchMode()
+        }
+
+        private fun fileClick(remoteFileView: RemoteFileView) {
+            when (clickMode) {
+                RecyclerViewMode.CLICK -> {}
+                RecyclerViewMode.SELECT -> {
+                    remoteFileView.switchSelect()
+                    binding.chckSelected.isChecked = remoteFileView.isFileSelected()
+                }
             }
         }
 
@@ -169,6 +221,19 @@ class SharedFilesAdapter(private val sharedFileClickListener: SharedFileClickLis
             val color = getColorFromCache(type, resources)
 
             return type to color
+        }
+
+        fun switchMode() {
+            when (clickMode) {
+                RecyclerViewMode.SELECT -> {
+                    binding.btnDownloadFile.visibility = View.GONE
+                    binding.chckSelected.visibility = View.VISIBLE
+                }
+                RecyclerViewMode.CLICK -> {
+                    binding.btnDownloadFile.visibility = View.VISIBLE
+                    binding.chckSelected.visibility = View.GONE
+                }
+            }
         }
     }
 
