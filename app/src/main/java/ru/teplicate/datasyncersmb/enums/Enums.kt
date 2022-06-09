@@ -15,6 +15,11 @@ enum class SetupSyncEvent {
     IDLE
 }
 
+enum class DownloadEvent {
+    IDLE,
+    DOWNLOAD_FINISHED
+}
+
 enum class SyncOption {
     SYNC_NESTED,
     REMOVE_SYNCED,

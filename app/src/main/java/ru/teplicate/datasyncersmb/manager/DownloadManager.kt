@@ -24,12 +24,16 @@ class DownloadManager(
     }
 
 
-    fun downloadFiles(smbInfo: SmbInfo, files: List<RemoteFileView>) {
+    fun downloadFiles(
+        smbInfo: SmbInfo,
+        files: List<RemoteFileView>,
+        downloadEventHandler: SmbProcessor.DownloadEventHandler
+    ) {
         val ioStreamProcessor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             this::downloadFileQ
         } else this::downloadFile
 
-        smbProcessor.downloadFiles(smbInfo, files, ioStreamProcessor)
+        smbProcessor.downloadFiles(smbInfo, files, ioStreamProcessor, downloadEventHandler)
     }
 
 

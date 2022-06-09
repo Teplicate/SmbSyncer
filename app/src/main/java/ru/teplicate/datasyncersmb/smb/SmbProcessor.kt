@@ -252,13 +252,16 @@ class SmbProcessor {
     fun downloadFiles(
         smbInfo: SmbInfo,
         filesView: List<RemoteFileView>,
-        streamProcessor: (String, InputStream) -> Unit
+        streamProcessor: (String, InputStream) -> Unit,
+        downloadEventHandler: DownloadEventHandler
     ) {
         val accessMask = setOf(AccessMask.GENERIC_READ)
         val attributes = setOf(FileAttributes.FILE_ATTRIBUTE_NORMAL)
         val shareAccess = setOf(SMB2ShareAccess.FILE_SHARE_READ)
         val createDisp = SMB2CreateDisposition.FILE_OPEN
         val createOptions = setOf(SMB2CreateOptions.FILE_RANDOM_ACCESS)
+
+        downloadEventHandler.onDownloadStart(filesView.size)
 
         executeAuthenticatedAction(smbInfo) { session, _ ->
             val share = session.connectShare(smbInfo.directory) as DiskShare
@@ -277,8 +280,12 @@ class SmbProcessor {
                         streamProcessor(fileView.name, io)
                     }
                 }
+
+                downloadEventHandler.successfulDownloadFile(fileView)
             }
         }
+
+        downloadEventHandler.onDownloadComplete()
     }
 
     abstract class SyncEventHandler {
@@ -295,5 +302,15 @@ class SmbProcessor {
         open fun onCopying() {}
 
         open fun onRemovingFiles() {}
+    }
+
+    abstract class DownloadEventHandler {
+        abstract fun processedWithException(fileView: RemoteFileView)
+
+        abstract fun successfulDownloadFile(fileView: RemoteFileView)
+
+        abstract fun onDownloadStart(totalElements: Int)
+
+        abstract fun onDownloadComplete()
     }
 }

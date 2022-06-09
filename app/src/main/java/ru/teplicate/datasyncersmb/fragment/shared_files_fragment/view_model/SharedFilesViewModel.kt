@@ -8,8 +8,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.teplicate.datasyncersmb.data.RemoteFileView
 import ru.teplicate.datasyncersmb.data.SmbInfo
+import ru.teplicate.datasyncersmb.enums.DownloadEvent
 import ru.teplicate.datasyncersmb.enums.RecyclerViewMode
 import ru.teplicate.datasyncersmb.manager.DownloadManager
+import ru.teplicate.datasyncersmb.smb.SmbProcessor
 import java.util.*
 import kotlin.collections.HashSet
 
@@ -32,9 +34,34 @@ class SharedFilesViewModel(private val downloadManager: DownloadManager) : ViewM
     val sharedFilesRVMode: LiveData<RecyclerViewMode>
         get() = _sharedFilesRVMode
 
+    private val _totalDownloadFiles: MutableLiveData<Int?> = MutableLiveData()
+    val totalDownloadFiles: LiveData<Int?>
+        get() = _totalDownloadFiles
+
+    private val _fileDownloaded: MutableLiveData<RemoteFileView?> = MutableLiveData()
+    val fileDownloaded: LiveData<RemoteFileView?>
+        get() = _fileDownloaded
+
+    private val _downloadState: MutableLiveData<DownloadEvent> = MutableLiveData(DownloadEvent.IDLE)
+    val downloadState: LiveData<DownloadEvent>
+        get() = _downloadState
+
     fun setupConnectionInfo(smbInfo: SmbInfo) {
         this.connectionInfo = smbInfo
     }
+
+    fun downloadStart(totalElements: Int) {
+        _totalDownloadFiles.postValue(totalElements)
+    }
+
+    fun fileDownloaded(remoteFileView: RemoteFileView) {
+        _fileDownloaded.postValue(remoteFileView)
+    }
+
+    fun downloadFinished() {
+        _downloadState.postValue(DownloadEvent.DOWNLOAD_FINISHED)
+    }
+
 
     fun listFiles() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -72,9 +99,16 @@ class SharedFilesViewModel(private val downloadManager: DownloadManager) : ViewM
         listFiles()
     }
 
-    fun downloadFile(fileView: RemoteFileView) {
+    fun downloadFile(
+        fileView: RemoteFileView,
+        downloadEventHandler: SmbProcessor.DownloadEventHandler
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
-            downloadManager.downloadFiles(smbInfo = connectionInfo, listOf(fileView))
+            downloadManager.downloadFiles(
+                smbInfo = connectionInfo,
+                listOf(fileView),
+                downloadEventHandler
+            )
         }
     }
 
