@@ -22,8 +22,12 @@ abstract class AbstractMasterDetailFragment(
         savedInstanceState: Bundle?
     ): View? {
         val r = bindViews(inflater)
-        setupViews()
         return r
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupViews()
     }
 
     abstract fun bindViews(layoutInflater: LayoutInflater): View

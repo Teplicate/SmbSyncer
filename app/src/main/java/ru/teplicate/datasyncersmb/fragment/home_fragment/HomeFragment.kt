@@ -3,8 +3,10 @@ package ru.teplicate.datasyncersmb.fragment.home_fragment
 import android.view.LayoutInflater
 import android.view.View
 import androidx.documentfile.provider.DocumentFile
-import androidx.lifecycle.Observer
+import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.teplicate.datasyncersmb.R
 import ru.teplicate.datasyncersmb.database.entity.SynchronizationUnit
@@ -34,7 +36,24 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
     override fun setupViews() {
         binding.rvSavedConnections.adapter = SyncUnitAdapter(this)
-        viewModel.readAllSyncUnits().observe(viewLifecycleOwner, syncUnitsObserver())
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.readAllSyncUnits().collect { syncUnits ->
+                    if (syncUnits.isEmpty()) {
+                        binding.containerSavedConnections.visibility = View.GONE
+                        binding.btnSetupConnection.visibility = View.VISIBLE
+                        binding.fabNewConnection.visibility = View.GONE
+                    } else {
+                        binding.containerSavedConnections.visibility = View.VISIBLE
+                        binding.btnSetupConnection.visibility = View.GONE
+                        binding.fabNewConnection.visibility = View.VISIBLE
+                        setupSyncUnitsRv(syncUnits)
+                    }
+                }
+            }
+        }
+
         viewModel.selectedUnit.observe(viewLifecycleOwner, selectedUnitObserver())
         viewModel.totalElements.observe(viewLifecycleOwner) { total ->
             total?.let {
@@ -68,6 +87,10 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         }
     }
 
+    private fun UpdateUI(uiState: HomeUiState) {
+
+    }
+
     private fun syncStateObserver(): Observer<in SyncState> {
         return Observer { state ->
             if (state != SyncState.IDLE) {
@@ -88,17 +111,6 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
     private fun syncUnitsObserver(): Observer<List<SynchronizationUnit>> {
         return Observer { syncUnits ->
-            if (syncUnits.isEmpty()) {
-                binding.containerSavedConnections.visibility = View.GONE
-                binding.btnSetupConnection.visibility = View.VISIBLE
-                binding.fabNewConnection.visibility = View.GONE
-            } else {
-                binding.containerSavedConnections.visibility = View.VISIBLE
-                binding.btnSetupConnection.visibility = View.GONE
-                binding.fabNewConnection.visibility = View.VISIBLE
-
-                setupSyncUnitsRv(syncUnits)
-            }
         }
     }
 
@@ -197,5 +209,14 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
     override fun onFinish() {
         TODO("Not yet implemented")
+    }
+
+    enum class HomeUiState {
+        NO_SUNITS,
+        HAS_SUNITS,
+        SUNIT_SELECTED,
+        SUNIT_UNSELECTED,
+        SYNC_STARTED,
+        SYNC_CANCELLED
     }
 }

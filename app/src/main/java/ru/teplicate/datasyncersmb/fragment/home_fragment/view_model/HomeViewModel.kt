@@ -20,6 +20,8 @@ class HomeViewModel(
     private val syncManager: SyncManager
 ) : ViewModel() {
 
+    private val _stateFlow
+
     private val _selectedUnit: MutableLiveData<SynchronizationUnit?> = MutableLiveData(null)
     val selectedUnit: LiveData<SynchronizationUnit?>
         get() = _selectedUnit
@@ -41,7 +43,6 @@ class HomeViewModel(
     fun readAllSyncUnits() =
         syncUnitRepository
             .readSyncUnits()
-            .asLiveData()
 
     fun unitSelected(unit: SynchronizationUnit) {
         _selectedUnit.postValue(unit)
