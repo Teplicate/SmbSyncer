@@ -32,6 +32,10 @@ class HomeViewModel(
     val syncState: LiveData<SyncState>
         get() = _syncState
 
+    private val _totalElements: MutableLiveData<Int?> = MutableLiveData(null)
+    val totalElements: LiveData<Int?>
+        get() = _totalElements
+
     private var syncJob: Job? = null
 
     fun readAllSyncUnits() =
@@ -87,5 +91,9 @@ class HomeViewModel(
 
     fun changeSyncState(state: SyncState) {
         _syncState.postValue(state)
+    }
+
+    fun startSync(totalElements: Int) {
+
     }
 }

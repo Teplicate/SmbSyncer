@@ -176,7 +176,7 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
         connectivityManager.requestNetwork(request, networkCallback)
     }
 
-    
+
     private fun setupSubnetOld() {
         //use ssid as prim key
         viewModel.setupSubnetAddress(wifiManager.dhcpInfo.gateway)
@@ -271,6 +271,10 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
             )
         )
     }
+
+    override fun onGuestCheck(guest: Boolean) {
+        viewModel.setupGuest(guest)
+    }
 }
 
 interface AddressDataListener {
@@ -281,6 +285,8 @@ interface AddressDataListener {
         password: String,
         connectionCallback: (ConnectionState) -> Unit
     )
+
+    fun onGuestCheck(guest: Boolean)
 
     fun proceedWithAddress()
 }

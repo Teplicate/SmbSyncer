@@ -36,11 +36,21 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         binding.rvSavedConnections.adapter = SyncUnitAdapter(this)
         viewModel.readAllSyncUnits().observe(viewLifecycleOwner, syncUnitsObserver())
         viewModel.selectedUnit.observe(viewLifecycleOwner, selectedUnitObserver())
+        viewModel.totalElements.observe(viewLifecycleOwner) { total ->
+            total?.let {
+                startSync(it)
+            }
+        }
+
 
         binding.btnSetupConnection.setOnClickListener {
             findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToAddressFragment())
         }
 
+
+        binding.fabNewConnection.setOnClickListener {
+            findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToAddressFragment())
+        }
 
         binding.btnSyncDirectory.setOnClickListener {
             syncInPlace()
@@ -81,9 +91,11 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
             if (syncUnits.isEmpty()) {
                 binding.containerSavedConnections.visibility = View.GONE
                 binding.btnSetupConnection.visibility = View.VISIBLE
+                binding.fabNewConnection.visibility = View.GONE
             } else {
                 binding.containerSavedConnections.visibility = View.VISIBLE
                 binding.btnSetupConnection.visibility = View.GONE
+                binding.fabNewConnection.visibility = View.VISIBLE
 
                 setupSyncUnitsRv(syncUnits)
             }
@@ -96,6 +108,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
     override fun onSelect(unit: SynchronizationUnit) {
         viewModel.unitSelected(unit)
+        binding.fabNewConnection.visibility = View.GONE
     }
 
     override fun onUnselect() {
@@ -142,8 +155,8 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
             viewModel.fileUploaded(docFile)
         }
 
-        override fun totalElements(totalElements: Int) {
-            requireNotNull(syncDialog).setupProgBar(totalElements)
+        override fun onStartSync(totalElements: Int) {
+            viewModel.startSync(totalElements)
         }
 
         override fun onSyncComplete(syncUnit: SynchronizationUnit) {
@@ -157,6 +170,10 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         override fun onCopying() {
             viewModel.changeSyncState(SyncState.COPYING)
         }
+    }
+
+    private fun startSync(totalElements: Int) {
+        requireNotNull(syncDialog).setupProgBar(totalElements)
     }
 
     private fun launchProgressDialog() {

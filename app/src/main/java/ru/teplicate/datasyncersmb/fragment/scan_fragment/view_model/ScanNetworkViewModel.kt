@@ -28,13 +28,15 @@ class ScanNetworkViewModel(
     val testConnect: LiveData<ConnectionState>
         get() = _testConnect
 
+    private var guest: Boolean = false
+
     private val _subnet = MutableLiveData<String?>(null)
     val subnet: LiveData<String?>
         get() = _subnet
 
- /*   private val _bssid = MutableLiveData<String?>(null)
-    val bssid: LiveData<String?>
-        get() = _bssid*/
+    /*   private val _bssid = MutableLiveData<String?>(null)
+       val bssid: LiveData<String?>
+           get() = _bssid*/
 
     private var smbInfo: SmbInfo? = null
 
@@ -83,11 +85,11 @@ class ScanNetworkViewModel(
         _wifiIsOn.value = isOn
     }
 
- /*   fun setupBssid(bssid: String?) {
-        bssid?.let {
-            _bssid.postValue(bssid)
-        }
-    }*/
+    /*   fun setupBssid(bssid: String?) {
+           bssid?.let {
+               _bssid.postValue(bssid)
+           }
+       }*/
 
     fun scanNetwork(callback: (AddressData) -> Unit, finishCallback: () -> Unit, localIp: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -102,7 +104,9 @@ class ScanNetworkViewModel(
             } catch (smbApiException: SMBApiException) {
                 smbApiException.printStackTrace()
 
-                smbProcessor.processException(smbApiException)
+                if (smbApiException.message?.contains("Error closing connection to") == true)
+                    ConnectionState.CONNECTION_OK
+                else smbProcessor.processException(smbApiException)
             }
             _testConnect.postValue(isConnected)
         }
@@ -113,4 +117,8 @@ class ScanNetworkViewModel(
     }
 
     fun makeArgs(): SmbInfo = requireNotNull(this.smbInfo)
+
+    fun setupGuest(guest: Boolean) {
+        this.guest = guest
+    }
 }

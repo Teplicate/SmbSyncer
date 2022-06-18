@@ -42,7 +42,8 @@ class SmbProcessor {
                 val session = connection.authenticate(auth)
 
                 with(session as Session) {
-                    val share = this.connectShare(smbInfo.directory)
+                    this.connectShare(smbInfo.directory)
+                        .use {  }
 
                     ConnectionState.CONNECTION_OK
                 }
@@ -157,6 +158,7 @@ class SmbProcessor {
                 try {
                     syncFile(share, parentDir, docFile, contentResolver)
                 } catch (e: Exception) {
+                    e.printStackTrace()
                     syncEventHandler.processedWithException(docFile, syncUnit = syncUnit)
                     return
                 }
@@ -293,7 +295,7 @@ class SmbProcessor {
 
         abstract fun successfulUploadFile(docFile: DocumentFile)
 
-        abstract fun totalElements(totalElements: Int)
+        abstract fun onStartSync(totalElements: Int)
 
         abstract fun onSyncComplete(syncUnit: SynchronizationUnit)
 

@@ -1,6 +1,5 @@
 package ru.teplicate.datasyncersmb.manager
 
-import android.app.Application
 import android.content.Context
 import android.net.Uri
 import ru.teplicate.datasyncersmb.content_processor.ContentProcessor
@@ -34,7 +33,7 @@ class SyncManager(
 
         val groupByDates = options.contains(SyncOption.GROUP_BY_DATE)
         val totalFiles: Int = files.size
-        syncEventHandler.totalElements(totalFiles)
+        syncEventHandler.onStartSync(totalFiles)
 
         syncEventHandler.onCopying()
         
