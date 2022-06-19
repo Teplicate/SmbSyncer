@@ -39,27 +39,31 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.readAllSyncUnits().collect { syncUnits ->
-                    if (syncUnits.isEmpty()) {
-                        binding.containerSavedConnections.visibility = View.GONE
-                        binding.btnSetupConnection.visibility = View.VISIBLE
-                        binding.fabNewConnection.visibility = View.GONE
-                    } else {
-                        binding.containerSavedConnections.visibility = View.VISIBLE
-                        binding.btnSetupConnection.visibility = View.GONE
-                        binding.fabNewConnection.visibility = View.VISIBLE
-                        setupSyncUnitsRv(syncUnits)
+
+                launch {
+                    viewModel.readAllSyncUnits().collect { units ->
+                        setupSUnits(units)
+                    }
+                }
+
+                launch {
+                    viewModel.stateFlow.collect { uiState ->
+                        when (uiState) {
+//                        is HomeUiState.LoadedSUnits -> setupSUnits(uiState.syncUnits)
+                            is HomeUiState.SUnitSelected -> unitSelected(uiState.sUnit)
+                            is HomeUiState.SyncStarted -> syncStarted()
+                        }
                     }
                 }
             }
         }
 
-        viewModel.selectedUnit.observe(viewLifecycleOwner, selectedUnitObserver())
-        viewModel.totalElements.observe(viewLifecycleOwner) { total ->
+//        viewModel.selectedUnit.observe(viewLifecycleOwner, selectedUnitObserver())
+ /*       viewModel.totalElements.observe(viewLifecycleOwner) { total ->
             total?.let {
                 startSync(it)
             }
-        }
+        }*/
 
 
         binding.btnSetupConnection.setOnClickListener {
@@ -75,15 +79,41 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
             syncInPlace()
         }
 
-        binding.btnDownloadFrom.setOnClickListener {
-            val smbInfo = requireNotNull(viewModel.selectedUnit.value).smbConnection.toSmbInfo()
-            findNavController().navigate(
-                HomeFragmentDirections.actionHomeFragmentToSharedFilesFragment(smbInfo)
-            )
-        }
+        /*   binding.btnDownloadFrom.setOnClickListener {
+               val smbInfo = requireNotNull(viewModel.selectedUnit.value).smbConnection.toSmbInfo()
+               findNavController().navigate(
+                   HomeFragmentDirections.actionHomeFragmentToSharedFilesFragment(smbInfo)
+               )
+           }*/
 
         binding.btnUploadSelection.setOnClickListener {
 
+        }
+    }
+
+    private fun syncStarted() {
+        launchProgressDialog()
+    }
+
+    private fun unitSelected(sUnit: SynchronizationUnit?) {
+        binding.buttonsContainer.visibility =
+            if (sUnit != null) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+    }
+
+    private fun setupSUnits(syncUnits: List<SynchronizationUnit>) {
+        if (syncUnits.isEmpty()) {
+            binding.containerSavedConnections.visibility = View.GONE
+            binding.btnSetupConnection.visibility = View.VISIBLE
+            binding.fabNewConnection.visibility = View.GONE
+        } else {
+            binding.containerSavedConnections.visibility = View.VISIBLE
+            binding.btnSetupConnection.visibility = View.GONE
+            binding.fabNewConnection.visibility = View.VISIBLE
+            setupSyncUnitsRv(syncUnits)
         }
     }
 
@@ -101,11 +131,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
     private fun selectedUnitObserver(): Observer<in SynchronizationUnit?> {
         return Observer { selected ->
-            if (selected != null) {
-                binding.buttonsContainer.visibility = View.VISIBLE
-            } else {
-                binding.buttonsContainer.visibility = View.GONE
-            }
+
         }
     }
 
@@ -138,14 +164,10 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
     }
 
     private fun syncInPlace() {
-        registerSyncObservers()
-        val syncEventHandler = syncEventHandler()
 
-        launchProgressDialog()
-        viewModel.syncData(syncEventHandler)
     }
 
-    private fun removeSyncObservers() {
+/*    private fun removeSyncObservers() {
         viewModel.syncState.removeObservers(viewLifecycleOwner)
         viewModel.uploadedFile.removeObservers(viewLifecycleOwner)
     }
@@ -153,36 +175,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
     private fun registerSyncObservers() {
         viewModel.uploadedFile.observe(viewLifecycleOwner, uploadedFileObserver())
         viewModel.syncState.observe(viewLifecycleOwner, syncStateObserver())
-    }
-
-    private fun syncEventHandler() = object : SmbProcessor.SyncEventHandler() {
-        override fun processedWithException(
-            docFile: DocumentFile,
-            syncUnit: SynchronizationUnit
-        ) {
-            viewModel.syncFailedOn(docFile, syncUnit)
-        }
-
-        override fun successfulUploadFile(docFile: DocumentFile) {
-            viewModel.fileUploaded(docFile)
-        }
-
-        override fun onStartSync(totalElements: Int) {
-            viewModel.startSync(totalElements)
-        }
-
-        override fun onSyncComplete(syncUnit: SynchronizationUnit) {
-            viewModel.onSyncComplete(syncUnit)
-        }
-
-        override fun onReadingFiles() {
-            viewModel.changeSyncState(SyncState.READING_FILES)
-        }
-
-        override fun onCopying() {
-            viewModel.changeSyncState(SyncState.COPYING)
-        }
-    }
+    }*/
 
     private fun startSync(totalElements: Int) {
         requireNotNull(syncDialog).setupProgBar(totalElements)
@@ -202,7 +195,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
     }
 
     override fun onCancelSync() {
-        removeSyncObservers()
+//        removeSyncObservers()
         viewModel.cancelSyncJob()
         syncDialog = null
     }
@@ -211,12 +204,20 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         TODO("Not yet implemented")
     }
 
-    enum class HomeUiState {
-        NO_SUNITS,
+
+    sealed class HomeUiState {
+
+//        class LoadedSUnits(val syncUnits: List<SynchronizationUnit>) : HomeUiState()
+
+        class SUnitSelected(val sUnit: SynchronizationUnit?) : HomeUiState()
+
+        class SyncStarted() : HomeUiState()
+
+        /*NO_SUNITS,
         HAS_SUNITS,
         SUNIT_SELECTED,
         SUNIT_UNSELECTED,
         SYNC_STARTED,
-        SYNC_CANCELLED
+        SYNC_CANCELLED*/
     }
 }

@@ -5,11 +5,15 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import ru.teplicate.datasyncersmb.database.entity.FileInfo
 import ru.teplicate.datasyncersmb.database.entity.SynchronizationUnit
 import ru.teplicate.datasyncersmb.database.repository.SyncUnitRepository
 import ru.teplicate.datasyncersmb.enums.SyncState
+import ru.teplicate.datasyncersmb.fragment.home_fragment.HomeFragment
 import ru.teplicate.datasyncersmb.manager.SyncManager
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
 import java.sql.Date
@@ -20,13 +24,15 @@ class HomeViewModel(
     private val syncManager: SyncManager
 ) : ViewModel() {
 
-    private val _stateFlow
+    fun loadSyncUnits() = syncUnitRepository.readSyncUnits()
 
-    private val _selectedUnit: MutableLiveData<SynchronizationUnit?> = MutableLiveData(null)
-    val selectedUnit: LiveData<SynchronizationUnit?>
-        get() = _selectedUnit
+    private val _stateFlow: MutableStateFlow<HomeFragment.HomeUiState> = MutableStateFlow(
+        HomeFragment.HomeUiState.SUnitSelected(null)
+    )
 
-    private val _uploadedFile: MutableLiveData<DocumentFile?> = MutableLiveData(null)
+    val stateFlow: StateFlow<HomeFragment.HomeUiState> = _stateFlow
+
+   /* private val _uploadedFile: MutableLiveData<DocumentFile?> = MutableLiveData(null)
     val uploadedFile: LiveData<DocumentFile?>
         get() = _uploadedFile
 
@@ -37,7 +43,7 @@ class HomeViewModel(
     private val _totalElements: MutableLiveData<Int?> = MutableLiveData(null)
     val totalElements: LiveData<Int?>
         get() = _totalElements
-
+*/
     private var syncJob: Job? = null
 
     fun readAllSyncUnits() =
@@ -45,12 +51,24 @@ class HomeViewModel(
             .readSyncUnits()
 
     fun unitSelected(unit: SynchronizationUnit) {
-        _selectedUnit.postValue(unit)
+        viewModelScope.launch {
+            _stateFlow.emit(HomeFragment.HomeUiState.SUnitSelected(unit))
+        }
+    }
+
+    fun syncInPlace() {
+        TODO("REWORK DIALOG ")
+        registerSyncObservers()
+        val syncEventHandler = syncEventHandler()
+        viewModel.syncData(syncEventHandler)
     }
 
     fun unitUnselected() {
-        _selectedUnit.postValue(null)
+        viewModelScope.launch {
+            _stateFlow.emit(HomeFragment.HomeUiState.SUnitSelected(null))
+        }
     }
+
 
     fun deleteUnit(unit: SynchronizationUnit) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -59,12 +77,12 @@ class HomeViewModel(
     }
 
     fun syncData(syncEventHandler: SmbProcessor.SyncEventHandler) {
-        syncJob = viewModelScope.launch(Dispatchers.IO) {
-            syncManager.syncContentFromDirectory(
-                requireNotNull(_selectedUnit.value),
-                syncEventHandler
-            )
-        }
+        /*  syncJob = viewModelScope.launch(Dispatchers.IO) {
+              syncManager.syncContentFromDirectory(
+                  requireNotNull(_selectedUnit.value),
+                  syncEventHandler
+              )
+          }*/
     }
 
     fun syncFailedOn(docFile: DocumentFile, syncUnit: SynchronizationUnit) {
@@ -96,5 +114,34 @@ class HomeViewModel(
 
     fun startSync(totalElements: Int) {
 
+    }
+
+    private fun syncEventHandler() = object : SmbProcessor.SyncEventHandler() {
+        override fun processedWithException(
+            docFile: DocumentFile,
+            syncUnit: SynchronizationUnit
+        ) {
+            syncFailedOn(docFile, syncUnit)
+        }
+
+        override fun successfulUploadFile(docFile: DocumentFile) {
+            fileUploaded(docFile)
+        }
+
+        override fun onStartSync(totalElements: Int) {
+            startSync(totalElements)
+        }
+
+        override fun onSyncComplete(syncUnit: SynchronizationUnit) {
+//            onSyncComplete(syncUnit)
+        }
+
+        override fun onReadingFiles() {
+            changeSyncState(SyncState.READING_FILES)
+        }
+
+        override fun onCopying() {
+            changeSyncState(SyncState.COPYING)
+        }
     }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.annotation.MainThread
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import ru.teplicate.datasyncersmb.R
 import ru.teplicate.datasyncersmb.databinding.DialogSyncProgressBinding
 import ru.teplicate.datasyncersmb.enums.SyncState
