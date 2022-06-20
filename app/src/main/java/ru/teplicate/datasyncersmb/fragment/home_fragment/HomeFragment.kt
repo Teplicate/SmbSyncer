@@ -1,11 +1,12 @@
 package ru.teplicate.datasyncersmb.fragment.home_fragment
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.teplicate.datasyncersmb.R
@@ -16,6 +17,8 @@ import ru.teplicate.datasyncersmb.fragment.core.AbstractMasterDetailFragment
 import ru.teplicate.datasyncersmb.fragment.dialog.SyncDialog
 import ru.teplicate.datasyncersmb.fragment.dialog.SyncDialogListener
 import ru.teplicate.datasyncersmb.fragment.home_fragment.view_model.HomeViewModel
+import ru.teplicate.datasyncersmb.service.SYNC_UNIT_KEY
+import ru.teplicate.datasyncersmb.service.SyncServiceForeground
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
 
 class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemClickListener,
@@ -58,13 +61,6 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
             }
         }
 
-//        viewModel.selectedUnit.observe(viewLifecycleOwner, selectedUnitObserver())
- /*       viewModel.totalElements.observe(viewLifecycleOwner) { total ->
-            total?.let {
-                startSync(it)
-            }
-        }*/
-
 
         binding.btnSetupConnection.setOnClickListener {
             findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToAddressFragment())
@@ -78,13 +74,6 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         binding.btnSyncDirectory.setOnClickListener {
             syncInPlace()
         }
-
-        /*   binding.btnDownloadFrom.setOnClickListener {
-               val smbInfo = requireNotNull(viewModel.selectedUnit.value).smbConnection.toSmbInfo()
-               findNavController().navigate(
-                   HomeFragmentDirections.actionHomeFragmentToSharedFilesFragment(smbInfo)
-               )
-           }*/
 
         binding.btnUploadSelection.setOnClickListener {
 
@@ -121,25 +110,6 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
     }
 
-    private fun syncStateObserver(): Observer<in SyncState> {
-        return Observer { state ->
-            if (state != SyncState.IDLE) {
-                requireNotNull(syncDialog).changeState(state)
-            }
-        }
-    }
-
-    private fun selectedUnitObserver(): Observer<in SynchronizationUnit?> {
-        return Observer { selected ->
-
-        }
-    }
-
-    private fun syncUnitsObserver(): Observer<List<SynchronizationUnit>> {
-        return Observer { syncUnits ->
-        }
-    }
-
     private fun setupSyncUnitsRv(syncUnits: List<SynchronizationUnit>) {
         (binding.rvSavedConnections.adapter as SyncUnitAdapter).supplySyncUnits(syncUnits)
     }
@@ -164,21 +134,13 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
     }
 
     private fun syncInPlace() {
-
-    }
-
-/*    private fun removeSyncObservers() {
-        viewModel.syncState.removeObservers(viewLifecycleOwner)
-        viewModel.uploadedFile.removeObservers(viewLifecycleOwner)
-    }
-
-    private fun registerSyncObservers() {
-        viewModel.uploadedFile.observe(viewLifecycleOwner, uploadedFileObserver())
-        viewModel.syncState.observe(viewLifecycleOwner, syncStateObserver())
-    }*/
-
-    private fun startSync(totalElements: Int) {
-        requireNotNull(syncDialog).setupProgBar(totalElements)
+        val serviceIntent = Intent(requireContext(), SyncServiceForeground::class.java).also {
+            it.putExtra(
+                SYNC_UNIT_KEY,
+                requireNotNull(viewModel.stateFlow.value as HomeUiState.SUnitSelected).sUnit
+            )
+        }
+        requireContext().startService(serviceIntent)
     }
 
     private fun launchProgressDialog() {
@@ -196,7 +158,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
     override fun onCancelSync() {
 //        removeSyncObservers()
-        viewModel.cancelSyncJob()
+//        viewModel.cancelSyncJob()
         syncDialog = null
     }
 
@@ -206,18 +168,8 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
 
 
     sealed class HomeUiState {
-
-//        class LoadedSUnits(val syncUnits: List<SynchronizationUnit>) : HomeUiState()
-
         class SUnitSelected(val sUnit: SynchronizationUnit?) : HomeUiState()
 
         class SyncStarted() : HomeUiState()
-
-        /*NO_SUNITS,
-        HAS_SUNITS,
-        SUNIT_SELECTED,
-        SUNIT_UNSELECTED,
-        SYNC_STARTED,
-        SYNC_CANCELLED*/
     }
 }

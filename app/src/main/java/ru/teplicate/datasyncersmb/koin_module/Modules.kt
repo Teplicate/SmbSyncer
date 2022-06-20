@@ -30,7 +30,7 @@ val vmModule = module {
 
     viewModel { ScanNetworkViewModel(get(), get()) }
     viewModel { SetupSyncViewModel(get()) }
-    viewModel { HomeViewModel(get(), get()) }
+    viewModel { HomeViewModel(get()) }
     viewModel { SharedFilesViewModel(get()) }
 }
 

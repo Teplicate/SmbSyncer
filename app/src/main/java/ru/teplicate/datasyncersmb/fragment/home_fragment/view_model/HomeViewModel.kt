@@ -20,8 +20,7 @@ import java.sql.Date
 import java.util.*
 
 class HomeViewModel(
-    private val syncUnitRepository: SyncUnitRepository,
-    private val syncManager: SyncManager
+    private val syncUnitRepository: SyncUnitRepository
 ) : ViewModel() {
 
     fun loadSyncUnits() = syncUnitRepository.readSyncUnits()
@@ -32,20 +31,6 @@ class HomeViewModel(
 
     val stateFlow: StateFlow<HomeFragment.HomeUiState> = _stateFlow
 
-   /* private val _uploadedFile: MutableLiveData<DocumentFile?> = MutableLiveData(null)
-    val uploadedFile: LiveData<DocumentFile?>
-        get() = _uploadedFile
-
-    private val _syncState: MutableLiveData<SyncState> = MutableLiveData(SyncState.IDLE)
-    val syncState: LiveData<SyncState>
-        get() = _syncState
-
-    private val _totalElements: MutableLiveData<Int?> = MutableLiveData(null)
-    val totalElements: LiveData<Int?>
-        get() = _totalElements
-*/
-    private var syncJob: Job? = null
-
     fun readAllSyncUnits() =
         syncUnitRepository
             .readSyncUnits()
@@ -54,13 +39,6 @@ class HomeViewModel(
         viewModelScope.launch {
             _stateFlow.emit(HomeFragment.HomeUiState.SUnitSelected(unit))
         }
-    }
-
-    fun syncInPlace() {
-        TODO("REWORK DIALOG ")
-        registerSyncObservers()
-        val syncEventHandler = syncEventHandler()
-        viewModel.syncData(syncEventHandler)
     }
 
     fun unitUnselected() {
@@ -73,75 +51,6 @@ class HomeViewModel(
     fun deleteUnit(unit: SynchronizationUnit) {
         viewModelScope.launch(Dispatchers.IO) {
             syncUnitRepository.deleteSyncUnit(unit)
-        }
-    }
-
-    fun syncData(syncEventHandler: SmbProcessor.SyncEventHandler) {
-        /*  syncJob = viewModelScope.launch(Dispatchers.IO) {
-              syncManager.syncContentFromDirectory(
-                  requireNotNull(_selectedUnit.value),
-                  syncEventHandler
-              )
-          }*/
-    }
-
-    fun syncFailedOn(docFile: DocumentFile, syncUnit: SynchronizationUnit) {
-        syncUnit.failedSyncInfo = FileInfo(
-            fileName = docFile.name ?: "",
-            fileUri = docFile.uri.toString(),
-            fileDate = Date(docFile.lastModified())
-        )
-        onSyncComplete(syncUnit)
-    }
-
-    fun onSyncComplete(syncUnit: SynchronizationUnit) {
-        syncUnit.synchronizationInfo?.lastSyncDate = Date(Calendar.getInstance().timeInMillis)
-        syncUnitRepository.updateSyncUnit(syncUnit)
-    }
-
-    fun cancelSyncJob() {
-        syncJob?.cancel()
-        _uploadedFile.postValue(null)
-    }
-
-    fun fileUploaded(docFile: DocumentFile) {
-        _uploadedFile.postValue(docFile)
-    }
-
-    fun changeSyncState(state: SyncState) {
-        _syncState.postValue(state)
-    }
-
-    fun startSync(totalElements: Int) {
-
-    }
-
-    private fun syncEventHandler() = object : SmbProcessor.SyncEventHandler() {
-        override fun processedWithException(
-            docFile: DocumentFile,
-            syncUnit: SynchronizationUnit
-        ) {
-            syncFailedOn(docFile, syncUnit)
-        }
-
-        override fun successfulUploadFile(docFile: DocumentFile) {
-            fileUploaded(docFile)
-        }
-
-        override fun onStartSync(totalElements: Int) {
-            startSync(totalElements)
-        }
-
-        override fun onSyncComplete(syncUnit: SynchronizationUnit) {
-//            onSyncComplete(syncUnit)
-        }
-
-        override fun onReadingFiles() {
-            changeSyncState(SyncState.READING_FILES)
-        }
-
-        override fun onCopying() {
-            changeSyncState(SyncState.COPYING)
         }
     }
 }

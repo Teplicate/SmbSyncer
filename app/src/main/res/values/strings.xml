@@ -18,4 +18,8 @@
     <string name="state_copying">Copying</string>
     <string name="state_reading_files">Reading files</string>
     <string name="state_removing">Removing</string>
+    <string name="sync_notification_title">Synchronizing</string>
+    <string name="sync_notification_message">%1$s</string>
+    <string name="notification_channel_name">syncsmb_channel</string>
+    <string name="notification_channel_description">sync upload notification info</string>
 </resources>
