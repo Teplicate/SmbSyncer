@@ -1,6 +1,8 @@
 package ru.teplicate.datasyncersmb.fragment.home_fragment
 
 import android.content.Intent
+import android.os.HandlerThread
+import android.os.Process
 import android.view.LayoutInflater
 import android.view.View
 import androidx.documentfile.provider.DocumentFile
@@ -17,6 +19,7 @@ import ru.teplicate.datasyncersmb.fragment.core.AbstractMasterDetailFragment
 import ru.teplicate.datasyncersmb.fragment.dialog.SyncDialog
 import ru.teplicate.datasyncersmb.fragment.dialog.SyncDialogListener
 import ru.teplicate.datasyncersmb.fragment.home_fragment.view_model.HomeViewModel
+import ru.teplicate.datasyncersmb.service.SYNC_DIALOG_MESSENGER
 import ru.teplicate.datasyncersmb.service.SYNC_UNIT_KEY
 import ru.teplicate.datasyncersmb.service.SyncServiceForeground
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
@@ -72,6 +75,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         }
 
         binding.btnSyncDirectory.setOnClickListener {
+            binding.btnSyncDirectory.isEnabled = false
             syncInPlace()
         }
 
@@ -134,13 +138,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
     }
 
     private fun syncInPlace() {
-        val serviceIntent = Intent(requireContext(), SyncServiceForeground::class.java).also {
-            it.putExtra(
-                SYNC_UNIT_KEY,
-                requireNotNull(viewModel.stateFlow.value as HomeUiState.SUnitSelected).sUnit
-            )
-        }
-        requireContext().startService(serviceIntent)
+        launchProgressDialog()
     }
 
     private fun launchProgressDialog() {
@@ -148,17 +146,19 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         requireNotNull(syncDialog).show(childFragmentManager, SyncDialog.TAG)
     }
 
-    private fun uploadedFileObserver(): Observer<in DocumentFile?> {
-        return Observer { doc ->
-            doc?.let {
-                syncDialog?.updateProgress()
-            }
+    override fun onDialogInitialized() {
+        val serviceIntent = Intent(requireContext(), SyncServiceForeground::class.java).also {
+            it.putExtra(
+                SYNC_UNIT_KEY,
+                requireNotNull(viewModel.stateFlow.value as HomeUiState.SUnitSelected).sUnit
+            )
+            it.putExtra(SYNC_DIALOG_MESSENGER, syncDialog!!.createSyncHandlerMessenger())
         }
+
+        requireContext().startService(serviceIntent)
     }
 
-    override fun onCancelSync() {
-//        removeSyncObservers()
-//        viewModel.cancelSyncJob()
+    override fun onHideDialog() {
         syncDialog = null
     }
 

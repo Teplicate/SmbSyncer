@@ -1,11 +1,11 @@
 package ru.teplicate.datasyncersmb.fragment.dialog
 
 import android.app.Dialog
-import android.os.Bundle
+import android.os.*
+import android.view.View
 import androidx.annotation.MainThread
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.lifecycleScope
 import ru.teplicate.datasyncersmb.R
 import ru.teplicate.datasyncersmb.databinding.DialogSyncProgressBinding
 import ru.teplicate.datasyncersmb.enums.SyncState
@@ -19,19 +19,53 @@ class SyncDialog(
     }
 
     private lateinit var binding: DialogSyncProgressBinding
+    private var syncHandler: SyncHandler? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        runHandlerThread()
         val builder = AlertDialog.Builder(requireContext())
         binding = DialogSyncProgressBinding.inflate(layoutInflater, null, false)
         val alertDialog = builder
             .setView(binding.root)
             .setMessage("Sync Progress")
-            .setNegativeButton("Cancel") { _, _ ->
-                syncDialogListener.onCancelSync()
+            .setNegativeButton("Hide") { _, _ ->
+                syncHandler?.removeCallbacksAndMessages(null)
+                syncDialogListener.onHideDialog()
+                dismiss()
             }
             .create()
 
+        syncDialogListener.onDialogInitialized()
+
         return alertDialog
+    }
+
+    fun createSyncHandlerMessenger() = Messenger(syncHandler!!)
+
+    inner class SyncHandler(looper: Looper) : Handler(looper) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            val total = msg.arg1
+            val current = msg.arg2
+            val what = msg.what
+
+
+            if (what == SyncState.STARTING.ordinal) {
+                setupProgBar(total)
+            } else {
+                updateProgress(current)
+            }
+
+            changeState(SyncState.values()[what])
+        }
+    }
+
+    private fun runHandlerThread() {
+        HandlerThread("SyncDialogThread")
+            .apply {
+                start()
+                syncHandler = SyncHandler(Looper.getMainLooper())
+            }
     }
 
     fun setupProgBar(totalElements: Int) {
@@ -48,8 +82,7 @@ class SyncDialog(
 
     @Synchronized
     @MainThread
-    fun updateProgress() {
-        val current = binding.dialogSyncProgressBar.progress + 1
+    fun updateProgress(current: Int) {
         binding.dialogSyncProgressBar.setProgressCompat(
             current,
             true
@@ -61,7 +94,7 @@ class SyncDialog(
 
     fun changeState(state: SyncState) {
         when (state) {
-            SyncState.COPYING -> binding.txtSyncState.text =
+            SyncState.STARTING -> binding.txtSyncState.text =
                 resources.getString(R.string.state_copying)
             SyncState.READING_FILES -> binding.txtSyncState.text =
                 resources.getString(R.string.state_reading_files)
@@ -69,11 +102,15 @@ class SyncDialog(
                 resources.getString(R.string.state_removing)
         }
     }
+
+
 }
 
 interface SyncDialogListener {
 
-    fun onCancelSync()
+    fun onDialogInitialized()
+
+    fun onHideDialog()
 
     fun onFinish()
 }

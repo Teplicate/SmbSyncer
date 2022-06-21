@@ -1,7 +1,6 @@
 package ru.teplicate.datasyncersmb.service
 
 import android.app.*
-import android.app.Notification.EXTRA_NOTIFICATION_ID
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.*
@@ -12,12 +11,14 @@ import org.koin.core.component.inject
 import ru.teplicate.datasyncersmb.R
 import ru.teplicate.datasyncersmb.broadcast.SyncBroadcastReceiver
 import ru.teplicate.datasyncersmb.database.entity.SynchronizationUnit
+import ru.teplicate.datasyncersmb.enums.SyncState
 import ru.teplicate.datasyncersmb.manager.SyncManager
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
 
 const val NOTIFICATION_ID = 1111
 const val NOTIFICATION_CHANNEL_ID = "channel"
 const val SYNC_UNIT_KEY = "SyncUnitKey"
+const val SYNC_DIALOG_MESSENGER = "SyncDialogMessenger"
 const val CANCEL_ACTION = "ACTION_CANCEL"
 
 class SyncServiceForeground(
@@ -27,7 +28,7 @@ class SyncServiceForeground(
     private var serviceHandler: ServiceHandler? = null
     private var notificationBuilder: NotificationCompat.Builder? = null
     private val notificationManager by lazy { this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager }
-    private var totalSyncElements: Int = 0
+    private var totalToSync: Int = 0
     private var totalSynced = 0
     private val syncManager: SyncManager by inject()
     private val broadcastReceiver: SyncBroadcastReceiver by lazy { SyncBroadcastReceiver(this) }
@@ -35,39 +36,60 @@ class SyncServiceForeground(
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
 
         override fun handleMessage(msg: Message) {
-            val syncHandler = syncHandler()
-            val sUnit = msg.obj as SynchronizationUnit
+            val (sUnit, dialogMessenger) = msg.obj as Pair<SynchronizationUnit, Messenger?>
+            val syncHandler = syncEventHandler(dialogMessenger)
             syncManager.syncContentFromDirectory(sUnit, syncHandler)
             stopSelf(msg.arg1)
         }
     }
 
-    private fun syncHandler() = object : SmbProcessor.SyncEventHandler() {
-        override fun processedWithException(
-            docFile: DocumentFile,
-            syncUnit: SynchronizationUnit
-        ) {
-            //write fail to db
-            //process exception
-        }
+    private fun syncEventHandler(dialogMessenger: Messenger?) =
+        object : SmbProcessor.SyncEventHandler() {
 
-        override fun successfulUploadFile(docFile: DocumentFile) {
-            totalSynced++
-            notifyFileUpload(totalSynced)
-        }
+            private fun sendToDialog(state: SyncState, total: Int, current: Int) {
+                val msg = serviceHandler!!.obtainMessage()
+                msg.what = state.ordinal
+                msg.arg1 = total
+                msg.arg2 = current
+                dialogMessenger?.send(msg)
+            }
 
-        override fun onStartSync(totalElements: Int) {
-            totalSyncElements = totalElements
-            notifyFileUpload(0)
-        }
+            override fun processedWithException(
+                docFile: DocumentFile,
+                syncUnit: SynchronizationUnit
+            ) {
+                //write fail to db
+                //process exception
+            }
 
-        override fun onSyncComplete(syncUnit: SynchronizationUnit) {
-            notifyFileUpload(totalSyncElements)
+            override fun successfulUploadFile(docFile: DocumentFile) {
+                totalSynced++
+                notifyFileUpload(totalSynced)
+                sendToDialog(SyncState.FILE_UPLOAD, totalToSync, totalSynced)
+            }
+
+            override fun onStartSync(totalElements: Int) {
+                totalToSync = totalElements
+                notifyFileUpload(0)
+                sendToDialog(SyncState.STARTING, totalToSync, 0)
+            }
+
+            override fun onSyncComplete(syncUnit: SynchronizationUnit) {
+                notifyFileUpload(totalToSync)
+                sendToDialog(SyncState.STARTING, totalToSync, totalToSync)
+            }
+
+            override fun onReadingFiles() {
+                sendToDialog(SyncState.READING_FILES, 0, 0)
+            }
+
+            override fun onRemovingFiles() {
+//                sendToDialog(SyncState.REMOVING, 0,0)
+            }
         }
-    }
 
     private fun notifyFileUpload(current: Int) {
-        notificationBuilder?.setProgress(totalSyncElements, current, false)
+        notificationBuilder?.setProgress(totalToSync, current, false)
         notificationManager.notify(
             NOTIFICATION_ID,
             requireNotNull(notificationBuilder).build()
@@ -105,12 +127,13 @@ class SyncServiceForeground(
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, buildNotification())
         val syncUnit = intent?.extras?.getParcelable(SYNC_UNIT_KEY) as SynchronizationUnit?
+        val dialogMessenger = intent?.extras?.getParcelable(SYNC_DIALOG_MESSENGER) as Messenger?
         requireNotNull(syncUnit)
 
         with(serviceHandler as ServiceHandler) {
             val message = this.obtainMessage()
             message.arg1 = startId
-            message.obj = syncUnit
+            message.obj = syncUnit to dialogMessenger
 
             this.sendMessage(message)
         }

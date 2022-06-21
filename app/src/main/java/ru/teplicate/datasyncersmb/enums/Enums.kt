@@ -32,9 +32,10 @@ enum class SyncOption {
 }
 
 enum class SyncState {
-    IDLE,
+    STARTING,
     READING_FILES,
-    COPYING,
+    FILE_UPLOAD,
+    COMPLETE,
     REMOVING
 }
 

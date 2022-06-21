@@ -13,7 +13,7 @@
     <string name="address_shared_directory">Shared Directory:</string>
     <string name="txt_connect_info">Connect info</string>
     <string name="dialog_progress_current_txt">%1$d</string>
-    <string name="dialog_progress_total_txt">$1%d</string>
+    <string name="dialog_progress_total_txt">%1$d</string>
     <string name="error_set_directory_name">Provide directory name</string>
     <string name="state_copying">Copying</string>
     <string name="state_reading_files">Reading files</string>
