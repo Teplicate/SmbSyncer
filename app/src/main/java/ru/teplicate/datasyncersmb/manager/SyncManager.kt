@@ -2,9 +2,10 @@ package ru.teplicate.datasyncersmb.manager
 
 import android.content.Context
 import android.net.Uri
+import ru.teplicate.core.domain.SyncOption
+import ru.teplicate.core.domain.SynchronizationUnit
 import ru.teplicate.datasyncersmb.content_processor.ContentProcessor
-import ru.teplicate.datasyncersmb.database.entity.SynchronizationUnit
-import ru.teplicate.datasyncersmb.enums.SyncOption
+import ru.teplicate.datasyncersmb.framework.database.entity.SynchronizationUnitEntity
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
 import java.sql.Date
 
@@ -15,11 +16,11 @@ class SyncManager(
 ) {
 
     fun syncContentFromDirectory(
-        synchronizationUnit: SynchronizationUnit,
+        synchronizationUnitEntity: SynchronizationUnit,
         syncEventHandler: SmbProcessor.SyncEventHandler
     ) {
-        val uri = Uri.parse(synchronizationUnit.contentUri)
-        val options = synchronizationUnit.synchronizationOptions
+        val uri = Uri.parse(synchronizationUnitEntity.contentUri)
+        val options = synchronizationUnitEntity.synchronizationOptions
         val getNested =
             options.contains(SyncOption.SYNC_NESTED) && options.contains(SyncOption.GROUP_BY_DATE)
 
@@ -42,14 +43,14 @@ class SyncManager(
                 Date(it.lastModified()).toString()
             }
             smbProcessor.uploadFilesGroupingByDate(
-                synchronizationUnit,
+                synchronizationUnitEntity,
                 dateGrouped,
                 syncEventHandler,
                 context.contentResolver
             )
         } else {
             smbProcessor.uploadFilesSavingStructure(
-                synchronizationUnit,
+                synchronizationUnitEntity,
                 files,
                 syncEventHandler,
                 context.contentResolver

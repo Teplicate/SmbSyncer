@@ -7,8 +7,9 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
+import ru.teplicate.core.domain.SmbInfo
 import ru.teplicate.datasyncersmb.data.RemoteFileView
-import ru.teplicate.datasyncersmb.data.SmbInfo
+import ru.teplicate.datasyncersmb.presentation.SmbInfoPresentation
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
 import java.io.File
 import java.io.FileOutputStream
@@ -19,13 +20,14 @@ class DownloadManager(
     private val smbProcessor: SmbProcessor
 ) {
 
-    fun listFiles(smbInfo: SmbInfo, path: String = "/"): List<RemoteFileView> {
-        return smbProcessor.listFiles(smbInfo, path)
+    fun listFiles(smbInfo: SmbInfoPresentation, path: String = "/"): List<RemoteFileView> {
+//        return smbProcessor.listFiles(smbInfo, path)
+        return emptyList()
     }
 
 
     fun downloadFiles(
-        smbInfo: SmbInfo,
+        smbInfo: SmbInfoPresentation,
         files: List<RemoteFileView>,
         downloadEventHandler: SmbProcessor.DownloadEventHandler
     ) {
@@ -33,7 +35,7 @@ class DownloadManager(
             this::downloadFileQ
         } else this::downloadFile
 
-        smbProcessor.downloadFiles(smbInfo, files, ioStreamProcessor, downloadEventHandler)
+//        smbProcessor.downloadFiles(smbInfo, files, ioStreamProcessor, downloadEventHandler)
     }
 
 

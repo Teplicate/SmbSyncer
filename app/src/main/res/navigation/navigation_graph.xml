@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/addressFragment"
-        android:name="ru.teplicate.datasyncersmb.fragment.scan_fragment.ScanNetworkFragment"
+        android:name="ru.teplicate.datasyncersmb.presentation.fragment.scan_fragment.ScanNetworkFragment"
         android:label="Network scanner"
         tools:layout="@layout/fragment_scan_network"
         >
@@ -17,20 +17,20 @@
     </fragment>
     <fragment
         android:id="@+id/setupSyncFragment"
-        android:name="ru.teplicate.datasyncersmb.fragment.setup_sync_fragment.SetupSyncFragment"
+        android:name="ru.teplicate.datasyncersmb.presentation.fragment.setup_sync_fragment.SetupSyncFragment"
         android:label="Setup sync unit">
-        <argument
-            android:name="smbInfo"
-            app:argType="ru.teplicate.datasyncersmb.data.SmbInfo" />
         <action
             android:id="@+id/action_setupSyncFragment_to_homeFragment"
             app:destination="@id/homeFragment"
             app:popUpTo="@id/homeFragment"
             app:popUpToInclusive="true" />
+        <argument
+            android:name="smbInfo"
+            app:argType="ru.teplicate.datasyncersmb.presentation.SmbInfoPresentation" />
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
-        android:name="ru.teplicate.datasyncersmb.fragment.home_fragment.HomeFragment"
+        android:name="ru.teplicate.datasyncersmb.presentation.fragment.home_fragment.HomeFragment"
         android:label="Synchronization list">
         <action
             android:id="@+id/action_homeFragment_to_addressFragment"
@@ -41,10 +41,10 @@
     </fragment>
     <fragment
         android:id="@+id/sharedFilesFragment"
-        android:name="ru.teplicate.datasyncersmb.fragment.shared_files_fragment.SharedFilesFragment"
+        android:name="ru.teplicate.datasyncersmb.presentation.fragment.shared_files_fragment.SharedFilesFragment"
         android:label="SharedFilesFragment" >
         <argument
             android:name="smbInfo"
-            app:argType="ru.teplicate.datasyncersmb.data.SmbInfo" />
+            app:argType="ru.teplicate.datasyncersmb.presentation.SmbInfoPresentation" />
     </fragment>
 </navigation>

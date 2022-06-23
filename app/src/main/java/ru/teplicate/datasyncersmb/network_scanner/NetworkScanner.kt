@@ -1,7 +1,7 @@
 package ru.teplicate.datasyncersmb.network_scanner
 
 import android.util.Log
-import ru.teplicate.datasyncersmb.fragment.scan_fragment.AddressData
+import ru.teplicate.datasyncersmb.presentation.fragment.scan_fragment.AddressData
 import java.lang.Exception
 import java.net.InetAddress
 

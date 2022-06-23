@@ -20,17 +20,6 @@ enum class DownloadEvent {
     DOWNLOAD_FINISHED
 }
 
-enum class SyncOption {
-    SYNC_NESTED,
-    REMOVE_SYNCED,
-    GROUP_BY_DATE,
-    CREATE_SYNC_DIR;
-
-    companion object {
-        fun stringToOption(string: String): SyncOption = SyncOption.valueOf(string)
-    }
-}
-
 enum class SyncState {
     STARTING,
     READING_FILES,
