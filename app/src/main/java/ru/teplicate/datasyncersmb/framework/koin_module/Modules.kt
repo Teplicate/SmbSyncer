@@ -10,10 +10,10 @@ import ru.teplicate.core.data.FileProviderDatasource
 import ru.teplicate.core.data.FileProviderRepository
 import ru.teplicate.core.data.SyncUnitDataSource
 import ru.teplicate.core.data.SyncUnitRepository
-import ru.teplicate.core.interactors.CreateSyncUnit
-import ru.teplicate.core.interactors.DeleteSyncUnit
-import ru.teplicate.core.interactors.ReadSyncUnits
-import ru.teplicate.core.interactors.UpdateSyncUnit
+import ru.teplicate.core.interactors.CreateSyncUnitUseCase
+import ru.teplicate.core.interactors.DeleteSyncUnitUseCase
+import ru.teplicate.core.interactors.ReadSyncUnitsUseCase
+import ru.teplicate.core.interactors.UpdateSyncUnitUseCase
 import ru.teplicate.datasyncersmb.content_processor.ContentProcessor
 import ru.teplicate.datasyncersmb.framework.FileProviderDataSourceImpl
 import ru.teplicate.datasyncersmb.presentation.fragment.home_fragment.view_model.HomeViewModel
@@ -21,7 +21,7 @@ import ru.teplicate.datasyncersmb.presentation.fragment.scan_fragment.view_model
 import ru.teplicate.datasyncersmb.presentation.fragment.setup_sync_fragment.view_model.SetupSyncViewModel
 import ru.teplicate.datasyncersmb.presentation.fragment.shared_files_fragment.view_model.SharedFilesViewModel
 import ru.teplicate.datasyncersmb.framework.SyncUnitDatasourceImpl
-import ru.teplicate.datasyncersmb.framework.SyncUnitInteractor
+import ru.teplicate.datasyncersmb.framework.SyncUnitInteraction
 import ru.teplicate.datasyncersmb.framework.database.AppDatabase
 import ru.teplicate.datasyncersmb.manager.DownloadManager
 import ru.teplicate.datasyncersmb.manager.SyncManager
@@ -38,12 +38,12 @@ val dataModule = module {
 }
 
 val interactorModule = module {
-    single { CreateSyncUnit(get()) }
-    single { UpdateSyncUnit(get()) }
-    single { DeleteSyncUnit(get()) }
-    single { ReadSyncUnits(get()) }
+    single { CreateSyncUnitUseCase(get()) }
+    single { UpdateSyncUnitUseCase(get()) }
+    single { DeleteSyncUnitUseCase(get()) }
+    single { ReadSyncUnitsUseCase(get()) }
 
-    single { SyncUnitInteractor(get(), get(), get(), get()) }
+    single { SyncUnitInteraction(get(), get(), get(), get()) }
 }
 
 val vmModule = module {

@@ -10,12 +10,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import ru.teplicate.core.domain.SyncOption
 import ru.teplicate.datasyncersmb.enums.SetupSyncEvent
-import ru.teplicate.datasyncersmb.framework.SyncUnitInteractor
+import ru.teplicate.datasyncersmb.framework.SyncUnitInteraction
 import ru.teplicate.datasyncersmb.presentation.SmbInfoPresentation
 import ru.teplicate.datasyncersmb.presentation.SyncUnitPresentation
 
 class SetupSyncViewModel(
-    private val syncUnitInteractor: SyncUnitInteractor
+    private val syncUnitInteraction: SyncUnitInteraction
 ) :
     ViewModel() {
 
@@ -61,7 +61,7 @@ class SetupSyncViewModel(
 
     fun saveSyncUnit() {
         viewModelScope.launch(Dispatchers.IO) {
-            syncUnitInteractor.createSyncUnit(
+            syncUnitInteraction.createSyncUnitUseCase(
                 makeSyncUnit(
                     smbInfo = requireNotNull(smbInfo),
                     contentUri = requireNotNull(_contentUri.value),

@@ -14,13 +14,18 @@ import android.os.Build
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.teplicate.datasyncersmb.R
+import ru.teplicate.datasyncersmb.databinding.AddressCardBinding
 import ru.teplicate.datasyncersmb.databinding.FragmentScanNetworkBinding
 import ru.teplicate.datasyncersmb.enums.ConnectionState
 import ru.teplicate.datasyncersmb.presentation.SmbInfoPresentation
@@ -31,7 +36,6 @@ import ru.teplicate.datasyncersmb.util.PermissionChecker
 class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener {
     private lateinit var binding: FragmentScanNetworkBinding
     private val viewModel: ScanNetworkViewModel by viewModel()
-
     private val permissionChecker: PermissionChecker by inject()
 
     private lateinit var wifiPermissionLauncher: ActivityResultLauncher<String>
@@ -278,6 +282,12 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
 
     override fun onGuestCheck(guest: Boolean) {
         viewModel.setupGuest(guest)
+    }
+
+    sealed class ScanEvent {
+        data class WifiIsOn(val on: Boolean) : ScanEvent()
+        data class TestConnectResult(val state: ConnectionState) : ScanEvent()
+        data class SubnetResult(val address: String) : ScanEvent()
     }
 }
 

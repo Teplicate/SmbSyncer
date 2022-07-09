@@ -1,16 +1,10 @@
 package ru.teplicate.datasyncersmb.content_processor
 
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import android.provider.MediaStore
-import androidx.compose.ui.platform.isDebugInspectorInfoEnabled
 import androidx.documentfile.provider.DocumentFile
-import java.io.File
 import java.sql.Date
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.LinkedHashMap
 
 class ContentProcessor {
 

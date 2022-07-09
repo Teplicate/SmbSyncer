@@ -11,7 +11,6 @@ import ru.teplicate.datasyncersmb.databinding.AddressCardBinding
 import ru.teplicate.datasyncersmb.enums.ConnectionState
 
 class AddressAdapter(private val addressDataListener: AddressDataListener) :
-
     ListAdapter<AddressData, AddressAdapter.AddressViewHolder>(AddressDiffCallback()) {
 
     private val addressSet = HashSet<AddressData>();

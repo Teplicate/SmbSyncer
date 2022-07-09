@@ -9,10 +9,10 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import ru.teplicate.core.domain.SynchronizationUnit
 import ru.teplicate.datasyncersmb.presentation.fragment.home_fragment.HomeFragment
-import ru.teplicate.datasyncersmb.framework.SyncUnitInteractor
+import ru.teplicate.datasyncersmb.framework.SyncUnitInteraction
 
 class HomeViewModel(
-    private val syncUnitInteractor: SyncUnitInteractor
+    private val syncUnitInteraction: SyncUnitInteraction
 ) : ViewModel(), KoinComponent {
 
 
@@ -23,7 +23,7 @@ class HomeViewModel(
     val stateFlow: StateFlow<HomeFragment.HomeUiState> = _stateFlow
 
     suspend fun readAllSyncUnits() =
-        syncUnitInteractor.readSyncUnits()
+        syncUnitInteraction.readSyncUnits()
 
     fun unitSelected(unitEntity: SynchronizationUnit) {
         viewModelScope.launch {
@@ -39,7 +39,7 @@ class HomeViewModel(
 
     fun deleteUnit(unitEntity: SynchronizationUnit) {
         viewModelScope.launch(Dispatchers.IO) {
-            syncUnitInteractor.deleteSyncUnit(unitEntity)
+            syncUnitInteraction.deleteSyncUnit(unitEntity)
         }
     }
 }

@@ -9,18 +9,19 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.loadKoinModules
+import org.koin.test.AutoCloseKoinTest
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import ru.teplicate.datasyncersmb.framework.database.AppDatabase
 import ru.teplicate.datasyncersmb.framework.database.dao.SynchronizationUnitDAO
 import ru.teplicate.datasyncersmb.framework.database.entity.SmbConnection
-import ru.teplicate.datasyncersmb.framework.database.entity.SynchronizationInfo
+
 import ru.teplicate.datasyncersmb.framework.database.entity.SynchronizationUnitEntity
 import ru.teplicate.datasyncersmb.framework.koin_module.roomTestModule
 
 @RunWith(AndroidJUnit4::class)
 
-class RoomTest : KoinTest {
+class RoomTest : AutoCloseKoinTest() {
 
 
     private val appDatabase: AppDatabase by inject()

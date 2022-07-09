@@ -3,22 +3,24 @@ package ru.teplicate.datasyncersmb.presentation.fragment.home_fragment
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import ru.teplicate.core.domain.SynchronizationUnit
 import ru.teplicate.datasyncersmb.R
 import ru.teplicate.datasyncersmb.databinding.FragmentHomeBinding
+import ru.teplicate.datasyncersmb.framework.service.SYNC_DIALOG_MESSENGER
+import ru.teplicate.datasyncersmb.framework.service.SYNC_UNIT_KEY
+import ru.teplicate.datasyncersmb.framework.service.SyncServiceForeground
+import ru.teplicate.datasyncersmb.presentation.SyncUnitPresentation
 import ru.teplicate.datasyncersmb.presentation.fragment.core.AbstractMasterDetailFragment
 import ru.teplicate.datasyncersmb.presentation.fragment.dialog.SyncDialog
 import ru.teplicate.datasyncersmb.presentation.fragment.dialog.SyncDialogListener
 import ru.teplicate.datasyncersmb.presentation.fragment.home_fragment.view_model.HomeViewModel
-import ru.teplicate.datasyncersmb.presentation.SyncUnitPresentation
-import ru.teplicate.datasyncersmb.framework.service.SYNC_DIALOG_MESSENGER
-import ru.teplicate.datasyncersmb.framework.service.SYNC_UNIT_KEY
-import ru.teplicate.datasyncersmb.framework.service.SyncServiceForeground
 
 class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemClickListener,
     SyncDialogListener {
@@ -27,7 +29,7 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         get() = R.layout.fragment_home
 
     private lateinit var binding: FragmentHomeBinding
-    private val viewModel: HomeViewModel by viewModel()
+    private val viewModel: HomeViewModel by sharedViewModel()
     private var syncDialog: SyncDialog? = null
 
     override fun bindViews(layoutInflater: LayoutInflater): View {
