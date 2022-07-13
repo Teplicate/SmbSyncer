@@ -14,6 +14,7 @@ import ru.teplicate.datasyncersmb.framework.broadcast.SyncBroadcastReceiver
 import ru.teplicate.datasyncersmb.framework.database.entity.SynchronizationUnitEntity
 import ru.teplicate.datasyncersmb.enums.SyncState
 import ru.teplicate.datasyncersmb.manager.SyncManager
+import ru.teplicate.datasyncersmb.presentation.SyncUnitPresentation
 import ru.teplicate.datasyncersmb.smb.SmbProcessor
 
 const val NOTIFICATION_ID = 1111
@@ -37,9 +38,9 @@ class SyncServiceForeground(
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
 
         override fun handleMessage(msg: Message) {
-      /*      val (sUnit, dialogMessenger) = msg.obj as Pair<SynchronizationUnitEntity, Messenger?>
+            val (sUnit, dialogMessenger) = msg.obj as Pair<SyncUnitPresentation, Messenger?>
             val syncHandler = syncEventHandler(dialogMessenger)
-            syncManager.syncContentFromDirectory(sUnit, syncHandler)*/
+            syncManager.syncContentFromDirectory(sUnit, syncHandler)
             stopSelf(msg.arg1)
         }
     }
@@ -57,7 +58,7 @@ class SyncServiceForeground(
 
             override fun processedWithException(
                 docFile: DocumentFile,
-                syncUnitEntity: SynchronizationUnit
+                syncUnitEntity: SyncUnitPresentation
             ) {
                 //write fail to db
                 //process exception
@@ -75,7 +76,7 @@ class SyncServiceForeground(
                 sendToDialog(SyncState.STARTING, totalToSync, 0)
             }
 
-            override fun onSyncComplete(syncUnitEntity: SynchronizationUnit) {
+            override fun onSyncComplete(syncUnitEntity: SyncUnitPresentation) {
                 notifyFileUpload(totalToSync)
                 sendToDialog(SyncState.STARTING, totalToSync, totalToSync)
             }
@@ -127,7 +128,7 @@ class SyncServiceForeground(
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, buildNotification())
-        val syncUnit = intent?.extras?.getParcelable(SYNC_UNIT_KEY) as SynchronizationUnitEntity?
+        val syncUnit = intent?.extras?.getParcelable(SYNC_UNIT_KEY) as SyncUnitPresentation?
         val dialogMessenger = intent?.extras?.getParcelable(SYNC_DIALOG_MESSENGER) as Messenger?
         requireNotNull(syncUnit)
 

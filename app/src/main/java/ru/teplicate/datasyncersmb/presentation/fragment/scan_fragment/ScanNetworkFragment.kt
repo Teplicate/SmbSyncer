@@ -12,16 +12,21 @@ import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.Observer
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.teplicate.datasyncersmb.R
@@ -72,6 +77,7 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
         }
 
 
+
         binding.addressList.adapter = AddressAdapter(this)
 
         viewModel.subnet.observe(viewLifecycleOwner, getSubnetObserver())
@@ -79,6 +85,11 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
         viewModel.wifiIsOn.observe(viewLifecycleOwner, getWiFiStateObserver())
         viewModel.testConnect.observe(viewLifecycleOwner, getTestConnectObserver())
         checkWifiState()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(this::class.java.name, "Destroy")
     }
 
     private fun getTestConnectObserver(): Observer<in ConnectionState> {
@@ -272,7 +283,7 @@ class ScanNetworkFragment : AbstractMasterDetailFragment(), AddressDataListener 
 
     override fun proceedWithAddress() {
         val args = viewModel.makeArgs()
-
+        viewModel.viewModelScope.coroutineContext.cancelChildren()
         findNavController().navigate(
             ScanNetworkFragmentDirections.actionAddressFragmentToSetupSyncFragment(
                 args

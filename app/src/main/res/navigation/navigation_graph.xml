@@ -9,8 +9,7 @@
         android:id="@+id/addressFragment"
         android:name="ru.teplicate.datasyncersmb.presentation.fragment.scan_fragment.ScanNetworkFragment"
         android:label="Network scanner"
-        tools:layout="@layout/fragment_scan_network"
-        >
+        tools:layout="@layout/fragment_scan_network">
         <action
             android:id="@+id/action_addressFragment_to_setupSyncFragment"
             app:destination="@id/setupSyncFragment" />
@@ -42,7 +41,7 @@
     <fragment
         android:id="@+id/sharedFilesFragment"
         android:name="ru.teplicate.datasyncersmb.presentation.fragment.shared_files_fragment.SharedFilesFragment"
-        android:label="SharedFilesFragment" >
+        android:label="SharedFilesFragment">
         <argument
             android:name="smbInfo"
             app:argType="ru.teplicate.datasyncersmb.presentation.SmbInfoPresentation" />

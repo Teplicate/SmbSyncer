@@ -21,6 +21,7 @@ import ru.teplicate.datasyncersmb.data.RemoteFileView
 import ru.teplicate.datasyncersmb.framework.database.entity.SynchronizationUnitEntity
 import ru.teplicate.datasyncersmb.enums.ConnectionState
 import ru.teplicate.datasyncersmb.presentation.SmbInfoPresentation
+import ru.teplicate.datasyncersmb.presentation.SyncUnitPresentation
 import java.io.InputStream
 import java.util.*
 
@@ -43,7 +44,7 @@ class SmbProcessor {
 
                 with(session as Session) {
                     this.connectShare(smbInfo.directory)
-                        .use {  }
+                        .use { }
 
                     ConnectionState.CONNECTION_OK
                 }
@@ -53,8 +54,8 @@ class SmbProcessor {
     }
 
     private fun <RV> executeAuthenticatedAction(
-        smbInfo: SmbInfo,
-        action: (Session, SmbInfo) -> RV
+        smbInfo: SmbInfoPresentation,
+        action: (Session, SmbInfoPresentation) -> RV
     ): RV {
         smbClient.connect(smbInfo.address)
             .use { connection ->
@@ -97,7 +98,7 @@ class SmbProcessor {
 
 
     fun uploadFilesGroupingByDate(
-        syncUnitEntity: SynchronizationUnit,
+        syncUnitEntity: SyncUnitPresentation,
         files: Map<String, List<DocumentFile>>,
         syncEventHandler: SyncEventHandler,
         contentResolver: ContentResolver
@@ -115,7 +116,10 @@ class SmbProcessor {
                     try {
                         syncFile(share, date, docFile, contentResolver)
                     } catch (e: Exception) {
-                        syncEventHandler.processedWithException(docFile, syncUnitEntity = syncUnitEntity)
+                        syncEventHandler.processedWithException(
+                            docFile,
+                            syncUnitEntity = syncUnitEntity
+                        )
                         return@executeAuthenticatedAction
                     }
 
@@ -128,7 +132,7 @@ class SmbProcessor {
 
 
     fun uploadFilesSavingStructure(
-        syncUnitEntity: SynchronizationUnit,
+        syncUnitEntity: SyncUnitPresentation,
         files: List<DocumentFile>,
         syncEventHandler: SyncEventHandler,
         contentResolver: ContentResolver
@@ -150,7 +154,7 @@ class SmbProcessor {
         share: DiskShare,
         contentResolver: ContentResolver,
         syncEventHandler: SyncEventHandler,
-        syncUnitEntity: SynchronizationUnit,
+        syncUnitEntity: SyncUnitPresentation,
         parentDir: String = ""
     ) {
         files.forEach { docFile ->
@@ -159,7 +163,10 @@ class SmbProcessor {
                     syncFile(share, parentDir, docFile, contentResolver)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    syncEventHandler.processedWithException(docFile, syncUnitEntity = syncUnitEntity)
+                    syncEventHandler.processedWithException(
+                        docFile,
+                        syncUnitEntity = syncUnitEntity
+                    )
                     return
                 }
             } else if (docFile.isDirectory) {
@@ -194,9 +201,10 @@ class SmbProcessor {
         docFile: DocumentFile,
         contentResolver: ContentResolver
     ) {
+
         val accessMask = setOf(AccessMask.GENERIC_ALL)
         val attributes = setOf(FileAttributes.FILE_ATTRIBUTE_NORMAL)
-        val shareAccess = SMB2ShareAccess.ALL
+        val shareAccess = setOf(SMB2ShareAccess.FILE_SHARE_WRITE)
         val createDisp = SMB2CreateDisposition.FILE_OPEN_IF
         val createOptions = setOf(SMB2CreateOptions.FILE_RANDOM_ACCESS)
         val fileName = "${docFile.name ?: UUID.randomUUID()}"
@@ -223,7 +231,7 @@ class SmbProcessor {
         }
     }
 
-    fun listFiles(smbInfo: SmbInfo, path: String): List<RemoteFileView> {
+    fun listFiles(smbInfo: SmbInfoPresentation, path: String): List<RemoteFileView> {
         val files = executeAuthenticatedAction(smbInfo) { session, smbInfo ->
             val share = session.connectShare(smbInfo.directory) as DiskShare
 
@@ -252,7 +260,7 @@ class SmbProcessor {
     }
 
     fun downloadFiles(
-        smbInfo: SmbInfo,
+        smbInfo: SmbInfoPresentation,
         filesView: List<RemoteFileView>,
         streamProcessor: (String, InputStream) -> Unit,
         downloadEventHandler: DownloadEventHandler
@@ -291,13 +299,16 @@ class SmbProcessor {
     }
 
     abstract class SyncEventHandler {
-        abstract fun processedWithException(docFile: DocumentFile, syncUnitEntity: SynchronizationUnit)
+        abstract fun processedWithException(
+            docFile: DocumentFile,
+            syncUnitEntity: SyncUnitPresentation
+        )
 
         abstract fun successfulUploadFile(docFile: DocumentFile)
 
         abstract fun onStartSync(totalElements: Int)
 
-        abstract fun onSyncComplete(syncUnitEntity: SynchronizationUnit)
+        abstract fun onSyncComplete(syncUnitEntity: SyncUnitPresentation)
 
         open fun onReadingFiles() {}
 

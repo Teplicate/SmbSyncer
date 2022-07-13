@@ -121,4 +121,9 @@ class ScanNetworkViewModel(
     fun setupGuest(guest: Boolean) {
         this.guest = guest
     }
+
+    override fun onCleared() {
+        Log.d(this::class.java.name, "vm destroy")
+        super.onCleared()
+    }
 }
