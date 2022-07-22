@@ -22,4 +22,6 @@
     <string name="sync_notification_message">%1$s</string>
     <string name="notification_channel_name">syncsmb_channel</string>
     <string name="notification_channel_description">sync upload notification info</string>
+    <string name="state_complete">Complete</string>
+    <string name="dialog_close">Close</string>
 </resources>

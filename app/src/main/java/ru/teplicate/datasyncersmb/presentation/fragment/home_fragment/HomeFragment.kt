@@ -1,6 +1,9 @@
 package ru.teplicate.datasyncersmb.presentation.fragment.home_fragment
 
+import android.content.ComponentName
 import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import androidx.lifecycle.Lifecycle
@@ -31,6 +34,16 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
     private lateinit var binding: FragmentHomeBinding
     private val viewModel: HomeViewModel by sharedViewModel()
     private var syncDialog: SyncDialog? = null
+/*
+    private class SyncServiceConnector : ServiceConnection {
+        override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onServiceDisconnected(p0: ComponentName?) {
+            TODO("Not yet implemented")
+        }
+    }*/
 
     override fun bindViews(layoutInflater: LayoutInflater): View {
         binding = FragmentHomeBinding.inflate(layoutInflater)
@@ -108,10 +121,6 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
         }
     }
 
-    private fun UpdateUI(uiState: HomeUiState) {
-
-    }
-
     private fun setupSyncUnitsRv(syncUnitEntities: List<SynchronizationUnit>) {
         (binding.rvSavedConnections.adapter as SyncUnitAdapter).supplySyncUnits(syncUnitEntities)
     }
@@ -152,8 +161,8 @@ class HomeFragment : AbstractMasterDetailFragment(), SyncUnitAdapter.SyncItemCli
             )
             it.putExtra(SYNC_DIALOG_MESSENGER, syncDialog!!.createSyncHandlerMessenger())
         }
-
-        requireContext().startService(serviceIntent)
+//        requireActivity().bindService()
+        requireContext() .startService(serviceIntent)
     }
 
     override fun onHideDialog() {

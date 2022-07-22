@@ -1,6 +1,7 @@
 package ru.teplicate.datasyncersmb.presentation.fragment.dialog
 
 import android.app.Dialog
+import android.content.DialogInterface
 import android.os.*
 import androidx.annotation.MainThread
 import androidx.appcompat.app.AlertDialog
@@ -19,24 +20,27 @@ class SyncDialog(
 
     private lateinit var binding: DialogSyncProgressBinding
     private var syncHandler: SyncHandler? = null
+    private lateinit var d: AlertDialog
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         runHandlerThread()
         val builder = AlertDialog.Builder(requireContext())
         binding = DialogSyncProgressBinding.inflate(layoutInflater, null, false)
-        val alertDialog = builder
+        d = builder
             .setView(binding.root)
             .setMessage("Sync Progress")
-            .setNegativeButton("Hide") { _, _ ->
-                syncHandler?.removeCallbacksAndMessages(null)
-                syncDialogListener.onHideDialog()
-                dismiss()
-            }
+            .setNegativeButton("Hide", onNegativeButtonClickListener)
             .create()
 
         syncDialogListener.onDialogInitialized()
 
-        return alertDialog
+        return d
+    }
+
+    private val onNegativeButtonClickListener = DialogInterface.OnClickListener { _, _ ->
+        syncHandler?.removeCallbacksAndMessages(null)
+        syncDialogListener.onHideDialog()
+        dismiss()
     }
 
     fun createSyncHandlerMessenger() = Messenger(syncHandler!!)
@@ -99,10 +103,13 @@ class SyncDialog(
                 resources.getString(R.string.state_reading_files)
             SyncState.REMOVING -> binding.txtSyncState.text =
                 resources.getString(R.string.state_removing)
+            SyncState.COMPLETE -> {
+                d.setButton(AlertDialog.BUTTON_NEGATIVE, resources.getString(R.string.dialog_close), onNegativeButtonClickListener)
+                binding.txtSyncState.text = resources.getString(R.string.state_complete)
+                binding.txtSyncState.text = resources.getString(R.string.state_complete)
+            }
         }
     }
-
-
 }
 
 interface SyncDialogListener {

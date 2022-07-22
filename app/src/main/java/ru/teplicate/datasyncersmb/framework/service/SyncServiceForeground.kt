@@ -35,6 +35,11 @@ class SyncServiceForeground(
     private val syncManager: SyncManager by inject()
     private val broadcastReceiver: SyncBroadcastReceiver by lazy { SyncBroadcastReceiver(this) }
 
+    inner class LocalBind : Binder() {
+        val syncService: SyncServiceForeground
+            get() = this@SyncServiceForeground
+    }
+
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
 
         override fun handleMessage(msg: Message) {
@@ -78,7 +83,7 @@ class SyncServiceForeground(
 
             override fun onSyncComplete(syncUnitEntity: SyncUnitPresentation) {
                 notifyFileUpload(totalToSync)
-                sendToDialog(SyncState.STARTING, totalToSync, totalToSync)
+                sendToDialog(SyncState.COMPLETE, totalToSync, totalToSync)
             }
 
             override fun onReadingFiles() {

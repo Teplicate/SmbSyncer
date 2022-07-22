@@ -201,8 +201,7 @@ class SmbProcessor {
         docFile: DocumentFile,
         contentResolver: ContentResolver
     ) {
-
-        val accessMask = setOf(AccessMask.GENERIC_ALL)
+        val accessMask = setOf(AccessMask.MAXIMUM_ALLOWED)
         val attributes = setOf(FileAttributes.FILE_ATTRIBUTE_NORMAL)
         val shareAccess = setOf(SMB2ShareAccess.FILE_SHARE_WRITE)
         val createDisp = SMB2CreateDisposition.FILE_OPEN_IF
